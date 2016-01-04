@@ -1,0 +1,15 @@
+{
+  "uuid": "254654e2-6c8b-414e-8b91-806ca5ff0ff5",
+  "shortName": "Life Log",
+  "longName": "Life Log",
+  "companyName": "Natasha Kerensikova",
+  "versionLabel": "1.0",
+  "sdkVersion": "3",
+  "targetPlatforms": ["aplite", "basalt", "chalk"],
+  "watchapp": {
+    "watchface": false
+  },
+  "resources": {
+    "media": []
+  }
+}
