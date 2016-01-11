@@ -28,8 +28,8 @@
     return defaultValue || false;
   }
 
-  function readShortEventList() {
-    var cn = document.getElementById("shortEv").childNodes;
+  function readEventList(elementId) {
+    var cn = document.getElementById(elementId).childNodes;
     var result = [];
     var i;
     for (i = 0; i < cn.length; i++) {
@@ -44,7 +44,8 @@
     // Set the return URL depending on the runtime environment
     var return_to = getQueryParam("return_to", "pebblejs://close#");
     var options = {
-      "short-ev": readShortEventList().join(","),
+      "short-ev": readEventList("shortEv").join(","),
+      "long-ev": readEventList("longEv").join(","),
     }
 
     console.log("returning " + JSON.stringify(options));
