@@ -46,5 +46,25 @@ Pebble.addEventListener("webviewclosed", function(e) {
       localStorage.setItem(key, configData[key]);
    }
 
-   console.log("Received from web view: " + JSON.stringify(configData));
+   const longEventArray = configData["long-ev"] !== "" ? configData["long-ev"].split(",") : [];
+   const shortEventArray = configData["short-ev"] !== "" ? configData["short-ev"].split(",") : [];
+
+   var dict = {
+      1000: shortEventArray.length,
+      2000: longEventArray.length,
+   };
+
+   for (var i = 0; i < shortEventArray.length; i++) {
+      dict[1001 + i] = shortEventArray[i];
+   }
+
+   for (var i = 0; i < longEventArray.length; i++) {
+      dict[2001 + i] = longEventArray[i];
+   }
+
+   Pebble.sendAppMessage(dict, function() {
+      console.log("Send successful: " + JSON.stringify(dict));
+   }, function() {
+      console.log("Send failed!");
+   });
 });
