@@ -51,6 +51,26 @@
     console.log("returning " + JSON.stringify(options));
     document.location = return_to + encodeURIComponent(JSON.stringify(options));
   }
+
+  function createDiv(className) {
+    var newElement = document.createElement("div");
+    newElement.className = className;
+    return newElement;
+  }
+
+  function newEvent(listId, textId) {
+    var newText = document.getElementById(textId).value;
+    if (!newText) return
+    var handle = createDiv("item-draggable-handle");
+    handle.appendChild(createDiv("item-draggable-handle-bar"));
+    handle.appendChild(createDiv("item-draggable-handle-bar"));
+    handle.appendChild(createDiv("item-draggable-handle-bar"));
+    var newNode = document.createElement("label");
+    newNode.className = "item";
+    newNode.appendChild(document.createTextNode(newText));
+    newNode.appendChild(handle);
+    document.getElementById(listId).appendChild(newNode);
+  }
   </script>
 </head>
 <body>
@@ -58,19 +78,35 @@
     <h1 class="title">Life Log</h1>
   </div>
 
- <div class="item-container">
+  <div class="item-container">
     <div class="item-container-header">Short Events</div>
     <div class="item-container-content">
-      <div class="item-dynamic-list" id="shortEv">
+      <div class="item-draggable-list" id="shortEv">
       </div>
+    </div>
+    <div class="item-container-content">
+      <label class="item">
+        <div class="item-input-wrapper item-input-wrapper-button">
+           <input type="text" class="item-input" id="newShortEventText" placeholder="New Event…">
+        <div>
+        <input type="button" class="item-button item-input-button" value="ADD" onclick="newEvent('shortEv', 'newShortEventText')">
+      </label>
     </div>
   </div>
 
- <div class="item-container">
+  <div class="item-container">
     <div class="item-container-header">Long Events</div>
     <div class="item-container-content">
-      <div class="item-dynamic-list" id="longEv">
+      <div class="item-draggable-list" id="longEv">
       </div>
+    </div>
+    <div class="item-container-content">
+      <label class="item">
+        <div class="item-input-wrapper item-input-wrapper-button">
+           <input type="text" class="item-input" id="newLongEventText" placeholder="New Event…">
+        <div>
+        <input type="button" class="item-button item-input-button" value="ADD" onclick="newEvent('longEv', 'newLongEventText')">
+      </label>
     </div>
   </div>
 
