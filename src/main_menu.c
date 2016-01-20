@@ -27,7 +27,7 @@ static const char *no_event_message = "No event configured.";
 static bool
 rebuild_menu(SimpleMenuSection *section) {
 	SimpleMenuItem *items;
-	uint16_t size = short_event_names.count + long_event_names.count;
+	uint16_t size = event_names.count;
 
 	section->title = 0;
 	section->items = 0;
@@ -45,15 +45,9 @@ rebuild_menu(SimpleMenuSection *section) {
 		return true;
 	}
 
-	for (uint16_t i = 0; i < short_event_names.count; i++) {
+	for (uint16_t i = 0; i < event_names.count; i++) {
 		items[i] = (SimpleMenuItem){
-		    .title = STRLIST_UNSAFE_ITEM(short_event_names, i)
-		};
-	}
-
-	for (uint16_t i = 0; i < long_event_names.count; i++) {
-		items[short_event_names.count + i] = (SimpleMenuItem){
-		    .title = STRLIST_UNSAFE_ITEM(long_event_names, i)
+		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
 		};
 	}
 

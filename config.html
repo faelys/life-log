@@ -48,8 +48,7 @@
     // Set the return URL depending on the runtime environment
     var return_to = getQueryParam("return_to", "pebblejs://close#");
     var options = {
-      "short-ev": readEventList("shortEv").join(","),
-      "long-ev": readEventList("longEv").join(","),
+      "event-list": readEventList("eventList").join(","),
     }
 
     console.log("returning " + JSON.stringify(options));
@@ -95,33 +94,17 @@
   </div>
 
   <div class="item-container">
-    <div class="item-container-header">Short Events</div>
+    <div class="item-container-header">Events</div>
     <div class="item-container-content">
-      <div class="item-draggable-list" id="shortEv">
+      <div class="item-draggable-list" id="eventList">
       </div>
     </div>
     <div class="item-container-content">
       <label class="item">
         <div class="item-input-wrapper item-input-wrapper-button">
-           <input type="text" class="item-input" id="newShortEventText" placeholder="New Event…">
+           <input type="text" class="item-input" id="newEventText" placeholder="New Event…">
         </div>
-        <input type="button" class="item-button item-input-button" value="ADD" onclick="newEvent('shortEv', 'newShortEventText')">
-      </label>
-    </div>
-  </div>
-
-  <div class="item-container">
-    <div class="item-container-header">Long Events</div>
-    <div class="item-container-content">
-      <div class="item-draggable-list" id="longEv">
-      </div>
-    </div>
-    <div class="item-container-content">
-      <label class="item">
-        <div class="item-input-wrapper item-input-wrapper-button">
-           <input type="text" class="item-input" id="newLongEventText" placeholder="New Event…">
-        <div>
-        <input type="button" class="item-button item-input-button" value="ADD" onclick="newEvent('longEv', 'newLongEventText')">
+        <input type="button" class="item-button item-input-button" value="ADD" onclick="newEvent('eventList', 'newEventText')">
       </label>
     </div>
   </div>
@@ -151,8 +134,7 @@
       }
     }
 
-    populateList("shortEv", getQueryParam("sev", ""));
-    populateList("longEv", getQueryParam("lev", ""));
+    populateList("eventList", getQueryParam("ev", ""));
   </script>
 </body>
 </html>

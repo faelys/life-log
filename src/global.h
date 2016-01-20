@@ -18,8 +18,7 @@
 
 #include "strlist.h"
 
-extern struct string_list long_event_names;
-extern struct string_list short_event_names;
+extern struct string_list event_names;
 
 void
 push_main_menu(void);

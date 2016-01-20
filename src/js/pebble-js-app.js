@@ -15,8 +15,7 @@
  */
 
 const settings = {  /* "name in local storage": "form input parameter" */
-   "long-ev":    "lev",
-   "short-ev":   "sev",
+   "event-list":    "lev",
 };
 
 function encodeStored(names) {
@@ -46,20 +45,14 @@ Pebble.addEventListener("webviewclosed", function(e) {
       localStorage.setItem(key, configData[key]);
    }
 
-   const longEventArray = configData["long-ev"] !== "" ? configData["long-ev"].split(",") : [];
-   const shortEventArray = configData["short-ev"] !== "" ? configData["short-ev"].split(",") : [];
+   const eventArray = configData["event-list"] !== "" ? configData["event-list"].split(",") : [];
 
    var dict = {
-      1000: shortEventArray.length,
-      2000: longEventArray.length,
+      1000: eventArray.length,
    };
 
-   for (var i = 0; i < shortEventArray.length; i++) {
-      dict[1001 + i] = shortEventArray[i];
-   }
-
-   for (var i = 0; i < longEventArray.length; i++) {
-      dict[2001 + i] = longEventArray[i];
+   for (var i = 0; i < eventArray.length; i++) {
+      dict[1001 + i] = eventArray[i];
    }
 
    Pebble.sendAppMessage(dict, function() {

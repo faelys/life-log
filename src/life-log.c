@@ -57,21 +57,11 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 
 	tuple = dict_find(iterator, 1000);
 	if (tuple && (tuple->type == TUPLE_UINT || tuple->type == TUPLE_INT)) {
-		strlist_set_from_dict(&short_event_names, iterator,
+		strlist_set_from_dict(&event_names, iterator,
 		    1001, tuple->value->uint8);
 	} else if (tuple) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
-		    "Unexpected type %d for short event count",
-		    (int)tuple->type);
-	}
-
-	tuple = dict_find(iterator, 2000);
-	if (tuple && (tuple->type == TUPLE_UINT || tuple->type == TUPLE_INT)) {
-		strlist_set_from_dict(&long_event_names, iterator,
-		    2001, tuple->value->uint8);
-	} else if (tuple) {
-		APP_LOG(APP_LOG_LEVEL_ERROR,
-		    "Unexpected type %d for long event count",
+		    "Unexpected type %d for event count",
 		    (int)tuple->type);
 	}
 
