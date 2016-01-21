@@ -82,9 +82,10 @@
   }
 
   function newEvent(listId, textId) {
-    var newText = document.getElementById(textId).value;
-    if (!newText) return;
-    appendItem(listId, newText);
+    var textElement = document.getElementById(textId);
+    if (!textElement || !textElement.value) return;
+    appendItem(listId, textElement.value);
+    textElement.value = "";
   }
   </script>
 </head>
