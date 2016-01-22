@@ -15,7 +15,7 @@
  */
 
 const settings = {  /* "name in local storage": "form input parameter" */
-   "event-list":    "lev",
+   "event-list":    "ev",
 };
 
 function encodeStored(names) {
