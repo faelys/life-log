@@ -48,3 +48,9 @@ strlist_prepare(struct string_list *list);
 
 bool
 strlist_reset(struct string_list *list);
+
+bool
+strlist_load(struct string_list *list, uint32_t first_key);
+
+bool
+strlist_store(struct string_list *list, uint32_t first_key);

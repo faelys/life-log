@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <inttypes.h>
+
 #include "strlist.h"
 
 #define REALLOC_FASTER_THAN_FIND
@@ -61,6 +63,73 @@ strlist_append(struct string_list *list, char *data) {
 	return true;
 }
 
+
+bool
+strlist_load(struct string_list *list, uint32_t first_key) {
+	uint8_t buffer[PERSIST_DATA_MAX_LENGTH];
+	int ret;
+	int32_t size;
+	char *data;
+	unsigned page_count;
+
+	size = persist_read_int(first_key);
+	if (size <= 0) {
+		strlist_reset(list);
+		return true;
+	}
+
+	data = malloc(size);
+	if (!data) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "Unable to allocate %" PRId32 " bytes for string list",
+		    size);
+		return false;
+	}
+
+	page_count = (size + PERSIST_DATA_MAX_LENGTH - 1)
+	    / PERSIST_DATA_MAX_LENGTH;
+	for (unsigned page = 0; page < page_count; page += 1) {
+		ret = persist_read_data(first_key + 1 + page,
+		    buffer, sizeof buffer);
+		if (ret == E_DOES_NOT_EXIST || ret <= 0) {
+			APP_LOG(APP_LOG_LEVEL_ERROR,
+			    "Missing page %u (key %" PRIu32 ") in string list",
+			    page, first_key + 1 + page);
+			free(data);
+			return false;
+		}
+
+		memcpy(data + page * PERSIST_DATA_MAX_LENGTH,
+		    buffer, ret);
+	}
+
+	if (data[0] || data[size - 1]) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "Inconsitent extreme values in string list buffer");
+		free(data);
+		return false;
+	}
+
+	free(list->data);
+	list->data = data;
+	list->size = size;
+	list->count = 0;
+
+	uint16_t first = 1;
+	uint16_t last;
+	char *p;
+	while (first < size) {
+		p = memchr(data + first, 0, size - first);
+		last = p - data;
+		list->offsets[list->count] = first;
+		list->count += 1;
+		first = last + 1;
+	}
+
+	return true;
+}
+
+
 bool
 strlist_prepare(struct string_list *list) {
 	if (!list) return false;
@@ -82,6 +151,34 @@ strlist_reset(struct string_list *list) {
 	list->data = new_data;
 	list->size = 1;
 	list->count = 0;
+	return true;
+}
+
+
+bool
+strlist_store(struct string_list *list, uint32_t first_key) {
+	unsigned page_count = (list->size + PERSIST_DATA_MAX_LENGTH - 1)
+	    / PERSIST_DATA_MAX_LENGTH;
+	int ret;
+	persist_write_int(first_key, list->size);
+
+	for (unsigned page = 0; page < page_count; page += 1) {
+		uint16_t chunk_size = (page == page_count - 1)
+		    ? (list->size - 1) % PERSIST_DATA_MAX_LENGTH + 1
+		    : PERSIST_DATA_MAX_LENGTH;
+		ret = persist_write_data(first_key + 1 + page,
+		    list->data + page * PERSIST_DATA_MAX_LENGTH,
+		    chunk_size);
+		if (ret <= 0 || (uint16_t)ret != chunk_size) {
+			APP_LOG(APP_LOG_LEVEL_ERROR,
+			    "Unexpected value %d returned by "
+			    "persist_write_data for page %u "
+			    "(requested %" PRIu16 ")",
+			    ret, page, chunk_size);
+			return false;
+		}
+	}
+
 	return true;
 }
 
