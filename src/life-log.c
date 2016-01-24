@@ -4,24 +4,6 @@
 #include "global.h"
 #include "strlist.h"
 
-static Window *window;
-static TextLayer *text_layer;
-
-static void window_load(Window *window) {
-	Layer *window_layer = window_get_root_layer(window);
-	GRect bounds = layer_get_bounds(window_layer);
-
-	text_layer = text_layer_create(GRect(0, 72, bounds.size.w, 20));
-	text_layer_set_text(text_layer, "Waiting configuration");
-	text_layer_set_text_alignment(text_layer, GTextAlignmentCenter);
-	layer_add_child(window_layer, text_layer_get_layer(text_layer));
-}
-
-static void
-window_unload(Window *window) {
-	text_layer_destroy(text_layer);
-}
-
 static void
 inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	Tuple *tuple;
@@ -59,6 +41,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	if (tuple && (tuple->type == TUPLE_UINT || tuple->type == TUPLE_INT)) {
 		strlist_set_from_dict(&event_names, iterator,
 		    1001, tuple->value->uint8);
+		strlist_store(&event_names, 1000);
 	} else if (tuple) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
 		    "Unexpected type %d for event count",
@@ -70,22 +53,17 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 
 static void
 init(void) {
+	strlist_load(&event_names, 1000);
+
 	app_message_register_inbox_received(inbox_received_handler);
 	app_message_open(8192, 0);
 
-	window = window_create();
-	window_set_window_handlers(window, (WindowHandlers) {
-	    .load = window_load,
-	    .unload = window_unload,
-	});
-
-	window_stack_push(window, true);
+	push_main_menu();
 }
 
 static void
 deinit(void) {
 	app_message_deregister_callbacks();
-	window_destroy(window);
 }
 
 int
