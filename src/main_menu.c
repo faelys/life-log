@@ -84,3 +84,21 @@ push_main_menu(void) {
 	}
 	window_stack_push(window, true);
 }
+
+void
+update_main_menu(void) {
+	if (!window || !menu_layer) return;
+
+	simple_menu_layer_destroy(menu_layer);
+	menu_layer = 0;
+	free((void *)menu_section.items);
+	menu_section.items = 0;
+
+	if (!rebuild_menu(&menu_section)) return;
+
+	Layer *window_layer = window_get_root_layer(window);
+	GRect bounds = layer_get_bounds(window_layer);
+	menu_layer = simple_menu_layer_create(bounds, window,
+	    &menu_section, 1, 0);
+	layer_add_child(window_layer, simple_menu_layer_get_layer(menu_layer));
+}

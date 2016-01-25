@@ -48,7 +48,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		    (int)tuple->type);
 	}
 
-	push_main_menu();
+	update_main_menu();
 }
 
 static void
