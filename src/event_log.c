@@ -36,3 +36,97 @@ record_event(uint8_t id) {
 	page[next_index].id = id;
 	next_index = (next_index + 1) % PAGE_LENGTH;
 }
+
+
+static const char *no_event_message = "No event logged.";
+
+static bool
+rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
+	SimpleMenuItem *items;
+	char buffer[32];
+	struct tm *tm;
+	int ret;
+
+	strlist_reset(subtitles);
+
+	for (uint16_t i = 0; i < PAGE_LENGTH; i += 1) {
+		if (!page[i].time) continue;
+		tm = localtime(&page[i].time);
+		ret = strftime(buffer, sizeof buffer, "%Y-%m-%d %H:%M:%S", tm);
+		if (!ret) continue;
+		strlist_append(subtitles, buffer);
+	}
+
+	if (subtitles->count) {
+		items = calloc(subtitles->count, sizeof *items);
+		if (!items) return false;
+	} else {
+		items = calloc(1, sizeof *items);
+		if (!items) return false;
+		items[0] = (SimpleMenuItem) { .title = no_event_message };
+	}
+
+	free((void *)section->items);
+	section->items = items;
+	section->title = 0;
+	section->num_items = subtitles->count;
+	if (!subtitles->count) {
+		section->num_items = 1;
+		return true;
+	}
+
+	for (uint16_t j = 0, i = 0; i < subtitles->count; i += 1) {
+		while (!page[j].time) j += 1;
+		if (page[j].id && page[j].id <= event_names.count) {
+			items[i] = (SimpleMenuItem) {
+			    .title = STRLIST_UNSAFE_ITEM(event_names,
+                                                         page[j].id - 1),
+			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, i)
+			};
+		} else {
+			items[i] = (SimpleMenuItem) {
+			    .title = STRLIST_UNSAFE_ITEM(*subtitles, i)
+			};
+		}
+		j += 1;
+	}
+
+	return true;
+}
+
+static Window *window;
+static SimpleMenuLayer *menu_layer;
+static SimpleMenuSection menu_section;
+static struct string_list subtitles;
+
+static void
+window_load(Window *window) {
+	Layer *window_layer = window_get_root_layer(window);
+	GRect bounds = layer_get_bounds(window_layer);
+
+	if (!rebuild_menu(&menu_section, &subtitles)) return;
+		/* TODO: display error */
+
+	menu_layer = simple_menu_layer_create(bounds, window,
+	    &menu_section, 1, 0);
+	layer_add_child(window_layer, simple_menu_layer_get_layer(menu_layer));
+}
+
+static void
+window_unload(Window *window) {
+	simple_menu_layer_destroy(menu_layer);
+	free((void *)menu_section.items);
+	menu_section.items = 0;
+}
+
+void
+push_log_menu(void) {
+	if (!window) {
+		window = window_create();
+		window_set_window_handlers(window, (WindowHandlers) {
+		    .load = &window_load,
+		    .unload = &window_unload,
+		});
+	}
+	window_stack_push(window, true);
+}

@@ -24,4 +24,10 @@ void
 push_main_menu(void);
 
 void
+push_log_menu(void);
+
+void
+record_event(uint8_t id);
+
+void
 update_main_menu(void);
