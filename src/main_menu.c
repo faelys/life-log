@@ -23,6 +23,15 @@ static Window *window;
 static SimpleMenuLayer *menu_layer;
 static SimpleMenuSection menu_section;
 static const char *no_event_message = "No event configured.";
+static const char *show_log_message = "Show Event Log";
+
+
+static void
+do_show_log(int index, void *context) {
+	(void)index;
+	(void)context;
+	push_log_menu();
+}
 
 static bool
 rebuild_menu(SimpleMenuSection *section) {
@@ -31,7 +40,7 @@ rebuild_menu(SimpleMenuSection *section) {
 
 	section->title = 0;
 	section->items = 0;
-	section->num_items = size ? size : 1;
+	section->num_items = (size ? size : 1) + 1;
 
 	items = calloc(section->num_items, sizeof *items);
 	if (!items) {
@@ -40,13 +49,18 @@ rebuild_menu(SimpleMenuSection *section) {
 	}
 	section->items = items;
 
+	items[0] = (SimpleMenuItem){
+	    .callback = &do_show_log,
+	    .title = show_log_message
+	};
+
 	if (!size) {
-		items[0] = (SimpleMenuItem){ .title = no_event_message };
+		items[1] = (SimpleMenuItem){ .title = no_event_message };
 		return true;
 	}
 
 	for (uint16_t i = 0; i < event_names.count; i++) {
-		items[i] = (SimpleMenuItem){
+		items[i + 1] = (SimpleMenuItem){
 		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
 		};
 	}
