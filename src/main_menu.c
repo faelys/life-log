@@ -27,6 +27,13 @@ static const char *show_log_message = "Show Event Log";
 
 
 static void
+do_record_event(int index, void *context) {
+	(void)context;
+	if (index > 0 && index <= 255)
+		record_event(index);
+}
+
+static void
 do_show_log(int index, void *context) {
 	(void)index;
 	(void)context;
@@ -61,6 +68,7 @@ rebuild_menu(SimpleMenuSection *section) {
 
 	for (uint16_t i = 0; i < event_names.count; i++) {
 		items[i + 1] = (SimpleMenuItem){
+		    .callback = &do_record_event,
 		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
 		};
 	}
