@@ -21,6 +21,9 @@
 extern struct string_list event_names;
 
 void
+event_log_init(void);
+
+void
 push_main_menu(void);
 
 void

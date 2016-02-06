@@ -54,6 +54,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 static void
 init(void) {
 	strlist_load(&event_names, 1000);
+	event_log_init();
 
 	app_message_register_inbox_received(inbox_received_handler);
 	app_message_open(8192, 0);

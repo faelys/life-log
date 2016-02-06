@@ -28,6 +28,20 @@ struct __attribute__((__packed__)) entry {
 struct entry page[PAGE_LENGTH];
 uint16_t next_index = 0;
 
+void
+event_log_init(void) {
+	int ret = persist_read_data(100, page, sizeof page);
+
+	if (ret < 0) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "Error %d while reading event log",
+		    ret);
+	} else if ((size_t)ret < sizeof page) {
+		APP_LOG(APP_LOG_LEVEL_WARNING,
+		    "Short read of event log (%d/%zu)",
+		    ret, sizeof page);
+	}
+}
 
 void
 record_event(uint8_t id) {
@@ -35,6 +49,17 @@ record_event(uint8_t id) {
 	page[next_index].time = time(0);
 	page[next_index].id = id;
 	next_index = (next_index + 1) % PAGE_LENGTH;
+
+	int ret = persist_write_data(100, page, sizeof page);
+	if (ret < 0) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "Error %d while writing event log",
+		    ret);
+	} else if ((size_t)ret < sizeof page) {
+		APP_LOG(APP_LOG_LEVEL_WARNING,
+		    "Short write of event log (%d/%zu)",
+		    ret, sizeof page);
+	}
 }
 
 
