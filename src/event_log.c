@@ -71,15 +71,25 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 	char buffer[32];
 	struct tm *tm;
 	int ret;
+	uint16_t first = 0, last = 0;
 
 	strlist_reset(subtitles);
 
 	for (uint16_t i = 0; i < PAGE_LENGTH; i += 1) {
-		if (!page[i].time) continue;
+		if (!page[i].time) break;
 		tm = localtime(&page[i].time);
 		ret = strftime(buffer, sizeof buffer, "%Y-%m-%d %H:%M:%S", tm);
-		if (!ret) continue;
+		if (!ret) break;
 		strlist_append(subtitles, buffer);
+
+		if (i && first == 0) {
+			if (page[i].time < page[i - 1].time) {
+				last = i - 1;
+				first = i;
+			} else {
+				last = i;
+			}
+		}
 	}
 
 	if (subtitles->count) {
@@ -94,14 +104,15 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 	free((void *)section->items);
 	section->items = items;
 	section->title = 0;
-	section->num_items = subtitles->count;
 	if (!subtitles->count) {
 		section->num_items = 1;
 		return true;
 	}
+	section->num_items = 0;
 
-	for (uint16_t j = 0, i = 0; i < subtitles->count; i += 1) {
-		while (!page[j].time) j += 1;
+	for (uint16_t j = last;; j = (j + PAGE_LENGTH - 1) % PAGE_LENGTH) {
+		uint16_t i = section->num_items;
+		section->num_items += 1;
 		if (page[j].id && page[j].id <= event_names.count) {
 			items[i] = (SimpleMenuItem) {
 			    .title = STRLIST_UNSAFE_ITEM(event_names,
@@ -113,7 +124,7 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 			    .title = STRLIST_UNSAFE_ITEM(*subtitles, i)
 			};
 		}
-		j += 1;
+		if (j == first) break;
 	}
 
 	return true;
