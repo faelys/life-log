@@ -117,11 +117,11 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 			items[i] = (SimpleMenuItem) {
 			    .title = STRLIST_UNSAFE_ITEM(event_names,
                                                          page[j].id - 1),
-			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, i)
+			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, j)
 			};
 		} else {
 			items[i] = (SimpleMenuItem) {
-			    .title = STRLIST_UNSAFE_ITEM(*subtitles, i)
+			    .title = STRLIST_UNSAFE_ITEM(*subtitles, j)
 			};
 		}
 		if (j == first) break;
