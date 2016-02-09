@@ -25,6 +25,7 @@ static SimpleMenuSection menu_section;
 static const char *no_event_message = "No event configured.";
 static const char *show_log_message = "Show Event Log";
 
+#define EXTRA_ITEMS 1
 
 static void
 do_record_event(int index, void *context) {
@@ -47,7 +48,7 @@ rebuild_menu(SimpleMenuSection *section) {
 
 	section->title = 0;
 	section->items = 0;
-	section->num_items = (size ? size : 1) + 1;
+	section->num_items = (size ? size : 1) + EXTRA_ITEMS;
 
 	items = calloc(section->num_items, sizeof *items);
 	if (!items) {
@@ -62,12 +63,14 @@ rebuild_menu(SimpleMenuSection *section) {
 	};
 
 	if (!size) {
-		items[1] = (SimpleMenuItem){ .title = no_event_message };
+		items[EXTRA_ITEMS] = (SimpleMenuItem){
+		    .title = no_event_message
+		};
 		return true;
 	}
 
 	for (uint16_t i = 0; i < event_names.count; i++) {
-		items[i + 1] = (SimpleMenuItem){
+		items[EXTRA_ITEMS + i] = (SimpleMenuItem){
 		    .callback = &do_record_event,
 		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
 		};
