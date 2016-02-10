@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <inttypes.h>
 #include <pebble.h>
 
 #include "global.h"
@@ -30,8 +31,31 @@ static const char *show_log_message = "Show Event Log";
 static void
 do_record_event(int index, void *context) {
 	(void)context;
-	if (index > 0 && index <= 255)
-		record_event(index);
+
+	if (index < EXTRA_ITEMS) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "do_record_event called with unexpected index %d"
+		    " (EXTRA_ITEMS being %d)",
+		    index, EXTRA_ITEMS);
+		return;
+	}
+
+	for (uint16_t id = 0, i = EXTRA_ITEMS;
+	    id < event_names.count;
+	    id += 1) {
+		if (STRLIST_UNSAFE_ITEM(event_names, id)[0] == '-') {
+			continue;
+		}
+		if (i == index) {
+			record_event(id + 1);
+			return;
+		}
+		i += 1;
+	}
+	APP_LOG(APP_LOG_LEVEL_ERROR,
+	    "Unexpected fallthrough from loop in do_record_event,"
+	    " index = %d, event_names.count = %" PRIu8,
+	    index, event_names.count);
 }
 
 static void
@@ -44,7 +68,13 @@ do_show_log(int index, void *context) {
 static bool
 rebuild_menu(SimpleMenuSection *section) {
 	SimpleMenuItem *items;
-	uint16_t size = event_names.count;
+	uint16_t size = 0;
+
+	for (uint16_t i = 0; i < event_names.count; i++) {
+		if (STRLIST_UNSAFE_ITEM(event_names, i)[0] != '-') {
+			size += 1;
+		}
+	}
 
 	section->title = 0;
 	section->items = 0;
@@ -69,8 +99,12 @@ rebuild_menu(SimpleMenuSection *section) {
 		return true;
 	}
 
-	for (uint16_t i = 0; i < event_names.count; i++) {
-		items[EXTRA_ITEMS + i] = (SimpleMenuItem){
+	for (uint16_t j = EXTRA_ITEMS, i = 0; i < event_names.count; i++) {
+		if (STRLIST_UNSAFE_ITEM(event_names, i)[0] == '-') {
+			continue;
+		}
+
+		items[j++] = (SimpleMenuItem){
 		    .callback = &do_record_event,
 		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
 		};
