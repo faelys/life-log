@@ -20,13 +20,48 @@
 #include "global.h"
 #include "strlist.h"
 
+#define EXTRA_ITEMS 1
+#define SUBTITLE_FORMAT "%Y-%m-%d %H:%M:%S"
+#define SUBTITLE_LENGTH 20
+
 static Window *window;
 static SimpleMenuLayer *menu_layer;
 static SimpleMenuSection menu_section;
+static char *subtitles;
 static const char *no_event_message = "No event configured.";
 static const char *show_log_message = "Show Event Log";
+static time_t event_last_seen[64];
 
-#define EXTRA_ITEMS 1
+static void
+set_subtitle(uint16_t id, uint16_t index) {
+	if (!event_last_seen[id]) {
+		strncpy(subtitles + index * SUBTITLE_LENGTH, "unknown",
+		    SUBTITLE_LENGTH);
+		return;
+	}
+
+	struct tm *tm = localtime(&event_last_seen[id]);
+	size_t result = strftime(subtitles + index * SUBTITLE_LENGTH,
+	    SUBTITLE_LENGTH,
+	    SUBTITLE_FORMAT,
+	    tm);
+	if (result != SUBTITLE_LENGTH - 1) {
+		APP_LOG(APP_LOG_LEVEL_WARNING,
+		    "Unexpected result %zu of subtitle strftime,"
+		    " instead of %d",
+		    result, SUBTITLE_LENGTH - 1);
+	}
+}
+
+static void
+update_last_seen(uint16_t id, uint16_t index) {
+	event_last_seen[id] = time(0);
+	persist_write_data(200, event_last_seen, sizeof event_last_seen);
+	set_subtitle(id, index);
+	if (menu_layer) {
+		layer_mark_dirty(simple_menu_layer_get_layer(menu_layer));
+	}
+}
 
 static void
 do_record_event(int index, void *context) {
@@ -48,6 +83,7 @@ do_record_event(int index, void *context) {
 		}
 		if (i == index) {
 			record_event(id + 1);
+			update_last_seen(id, index);
 			return;
 		}
 		i += 1;
@@ -85,6 +121,14 @@ rebuild_menu(SimpleMenuSection *section) {
 		section->num_items = 0;
 		return false;
 	}
+
+	subtitles = calloc(section->num_items, SUBTITLE_LENGTH);
+	if (!subtitles) {
+		section->num_items = 0;
+		free(items);
+		return false;
+	}
+
 	section->items = items;
 
 	items[0] = (SimpleMenuItem){
@@ -104,9 +148,12 @@ rebuild_menu(SimpleMenuSection *section) {
 			continue;
 		}
 
+		set_subtitle(i, j);
+
 		items[j++] = (SimpleMenuItem){
 		    .callback = &do_record_event,
-		    .title = STRLIST_UNSAFE_ITEM(event_names, i)
+		    .title = STRLIST_UNSAFE_ITEM(event_names, i),
+		    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 		};
 	}
 
@@ -117,6 +164,7 @@ static void
 window_load(Window *window) {
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_bounds(window_layer);
+	persist_read_data(200, event_last_seen, sizeof event_last_seen);
 
 	if (!rebuild_menu(&menu_section)) return; /* TODO: display error */
 
