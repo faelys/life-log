@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <pebble.h>
 
+#include "dict_tools.h"
 #include "global.h"
 #include "strlist.h"
 
@@ -21,13 +22,13 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 			break;
 		    case TUPLE_INT:
 			APP_LOG(APP_LOG_LEVEL_INFO,
-			    "got signed %" PRId32 ": %d",
-			    tuple->key, (int)tuple->value->int8);
+			    "got signed %" PRIu32 ": %" PRId32,
+			    tuple->key, tuple_int(tuple));
 			break;
 		    case TUPLE_UINT:
 			APP_LOG(APP_LOG_LEVEL_INFO,
-			    "got unsigned %" PRIu32 ": %d",
-			    tuple->key, (int)tuple->value->uint8);
+			    "got unsigned %" PRIu32 ": %" PRIu32,
+			    tuple->key, tuple_uint(tuple));
 			break;
 		    default:
 			APP_LOG(APP_LOG_LEVEL_INFO,
