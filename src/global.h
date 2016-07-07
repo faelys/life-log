@@ -19,6 +19,7 @@
 #include "strlist.h"
 
 extern struct string_list event_names;
+extern uint8_t long_event_id[STRLIST_MAX_SIZE];
 
 void
 event_log_init(void);

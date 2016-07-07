@@ -6,6 +6,16 @@
 #include "strlist.h"
 
 static void
+update_long_event_id(void) {
+	uint8_t long_event_count = 0;
+	for (uint8_t i = 0; i < event_names.count; i += 1) {
+		long_event_id[i]
+		    = (STRLIST_UNSAFE_ITEM(event_names, i)[0] == '+')
+		    ? ++long_event_count : 0;
+	}
+}
+
+static void
 inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	Tuple *tuple;
 
@@ -43,6 +53,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		strlist_set_from_dict(&event_names, iterator,
 		    1001, tuple->value->uint8);
 		strlist_store(&event_names, 1000);
+		update_long_event_id();
 	} else if (tuple) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
 		    "Unexpected type %d for event count",
@@ -55,6 +66,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 static void
 init(void) {
 	strlist_load(&event_names, 1000);
+	update_long_event_id();
 	event_log_init();
 
 	app_message_register_inbox_received(inbox_received_handler);
