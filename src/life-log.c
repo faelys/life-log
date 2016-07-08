@@ -7,7 +7,7 @@
 
 static void
 update_long_event_id(void) {
-	uint8_t long_event_count = 0;
+	long_event_count = 0;
 	for (uint8_t i = 0; i < event_names.count; i += 1) {
 		long_event_id[i]
 		    = (STRLIST_UNSAFE_ITEM(event_names, i)[0] == '+')

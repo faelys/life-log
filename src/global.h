@@ -20,6 +20,7 @@
 
 extern struct string_list event_names;
 extern uint8_t long_event_id[STRLIST_MAX_SIZE];
+extern uint8_t long_event_count;
 
 void
 event_log_init(void);

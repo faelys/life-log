@@ -18,3 +18,4 @@
 
 struct string_list event_names = {0};
 uint8_t long_event_id[STRLIST_MAX_SIZE] = {0};
+uint8_t long_event_count = 0;
