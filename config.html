@@ -49,6 +49,8 @@
     var return_to = getQueryParam("return_to", "pebblejs://close#");
     var options = {
       "event-list": readEventList("eventList").join(","),
+      "begin-prefix": document.getElementById("beginPrefix").value,
+      "end-prefix": document.getElementById("endPrefix").value,
     }
 
     console.log("returning " + JSON.stringify(options));
@@ -111,6 +113,20 @@
   </div>
 
   <div class="item-container">
+    <div class="item-container-header">Long Event Prefixes</div>
+    <div class="item-container-content">
+      <label class="item">
+        Beginning of Event
+        <input type="text" class="item-input" name="beginPrefix" id="beginPrefix">
+      </label>
+      <label class="item">
+        End of Event
+        <input type="text" class="item-input" name="endPrefix" id="endPrefix">
+      </label>
+    </div>
+  </div>
+
+  <div class="item-container">
     <div class="button-container">
       <input id="submitButton" type="button" class="item-button" value="SUBMIT" onClick="onSubmit()">
     </div>
@@ -136,6 +152,9 @@
     }
 
     populateList("eventList", getQueryParam("ev", ""));
+
+    document.getElementById("beginPrefix").value = getQueryParam("bpre", "Start of ");
+    document.getElementById("endPrefix").value = getQueryParam("epre", "End of ");
   </script>
 </body>
 </html>
