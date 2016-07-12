@@ -16,6 +16,8 @@
 
 const settings = {  /* "name in local storage": "form input parameter" */
    "event-list":    "ev",
+   "begin-prefix":  "bpre",
+   "end-prefix":    "epre",
 };
 
 function encodeStored(names) {
@@ -50,6 +52,13 @@ Pebble.addEventListener("webviewclosed", function(e) {
    var dict = {
       1000: eventArray.length,
    };
+
+   if (configData["begin-prefix"] !== null) {
+      dict[901] = configData["begin-prefix"];
+   }
+   if (configData["end-prefix"] !== null) {
+      dict[902] = configData["end-prefix"];
+   }
 
    for (var i = 0; i < eventArray.length; i++) {
       dict[1001 + i] = eventArray[i];
