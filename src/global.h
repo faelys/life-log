@@ -18,9 +18,13 @@
 
 #include "strlist.h"
 
+#define PREFIX_LENGTH 32
+
 extern struct string_list event_names;
 extern uint8_t long_event_id[STRLIST_MAX_SIZE];
 extern uint8_t long_event_count;
+extern char begin_prefix[PREFIX_LENGTH];
+extern char end_prefix[PREFIX_LENGTH];
 
 void
 event_log_init(void);

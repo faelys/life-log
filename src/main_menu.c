@@ -24,9 +24,6 @@
 #define SUBTITLE_FORMAT "%Y-%m-%d %H:%M:%S"
 #define SUBTITLE_LENGTH 20
 
-#define START_PREFIX "Start of "
-#define STOP_PREFIX "End of "
-
 static Window *window;
 static SimpleMenuLayer *menu_layer;
 static SimpleMenuSection menu_section;
@@ -117,10 +114,10 @@ rebuild_menu(SimpleMenuSection *section) {
 		if (name[0] == '+') {
 			char buffer[128];
 			snprintf(buffer, sizeof buffer, "%s%s",
-			    START_PREFIX, name + 1);
+			    begin_prefix, name + 1);
 			strlist_append(&long_event_titles, buffer);
 			snprintf(buffer, sizeof buffer, "%s%s",
-			    STOP_PREFIX, name + 1);
+			    end_prefix, name + 1);
 			strlist_append(&long_event_titles, buffer);
 			size += 2;
 		} else if (name[0] != '-') {

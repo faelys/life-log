@@ -60,6 +60,20 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		    (int)tuple->type);
 	}
 
+	tuple = dict_find(iterator, 901);
+	if (tuple && tuple->type == TUPLE_CSTRING) {
+		strncpy(begin_prefix, tuple->value->cstring,
+		    sizeof begin_prefix);
+		begin_prefix[sizeof begin_prefix - 1] = 0;
+	}
+
+	tuple = dict_find(iterator, 902);
+	if (tuple && tuple->type == TUPLE_CSTRING) {
+		strncpy(end_prefix, tuple->value->cstring,
+		    sizeof end_prefix);
+		begin_prefix[sizeof end_prefix - 1] = 0;
+	}
+
 	update_main_menu();
 }
 
