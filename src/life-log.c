@@ -65,13 +65,15 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		strncpy(begin_prefix, tuple->value->cstring,
 		    sizeof begin_prefix);
 		begin_prefix[sizeof begin_prefix - 1] = 0;
+		persist_write_string(901, begin_prefix);
 	}
 
 	tuple = dict_find(iterator, 902);
 	if (tuple && tuple->type == TUPLE_CSTRING) {
 		strncpy(end_prefix, tuple->value->cstring,
 		    sizeof end_prefix);
-		begin_prefix[sizeof end_prefix - 1] = 0;
+		end_prefix[sizeof end_prefix - 1] = 0;
+		persist_write_string(902, end_prefix);
 	}
 
 	update_main_menu();
@@ -79,6 +81,10 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 
 static void
 init(void) {
+	persist_read_string(901, begin_prefix, sizeof begin_prefix);
+	begin_prefix[sizeof begin_prefix - 1] = 0;
+	persist_read_string(902, end_prefix, sizeof end_prefix);
+	end_prefix[sizeof end_prefix - 1] = 0;
 	strlist_load(&event_names, 1000);
 	update_long_event_id();
 	event_log_init();
