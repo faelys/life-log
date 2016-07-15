@@ -6,18 +6,35 @@
 #include "strlist.h"
 
 static void
-update_long_event_id(void) {
+preprocess_long_events(void) {
+	char buffer[128];
+
 	long_event_count = 0;
+	strlist_reset(&event_begins);
+	strlist_reset(&event_ends);
+
 	for (uint8_t i = 0; i < event_names.count; i += 1) {
-		long_event_id[i]
-		    = (STRLIST_UNSAFE_ITEM(event_names, i)[0] == '+')
-		    ? ++long_event_count : 0;
+		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
+
+		if (name[0] != '+') {
+			long_event_id[i] = 0;
+			continue;
+		}
+
+		long_event_id[i] = ++long_event_count;
+
+		snprintf(buffer, sizeof buffer, "%s%s", begin_prefix, name + 1);
+		strlist_append(&event_begins, buffer);
+
+		snprintf(buffer, sizeof buffer, "%s%s", end_prefix, name + 1);
+		strlist_append(&event_ends, buffer);
 	}
 }
 
 static void
 inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	Tuple *tuple;
+	bool events_updated = false;
 
 	(void)context;
 
@@ -53,7 +70,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		strlist_set_from_dict(&event_names, iterator,
 		    1001, tuple->value->uint8);
 		strlist_store(&event_names, 1000);
-		update_long_event_id();
+		events_updated = true;
 	} else if (tuple) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
 		    "Unexpected type %d for event count",
@@ -66,6 +83,7 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		    sizeof begin_prefix);
 		begin_prefix[sizeof begin_prefix - 1] = 0;
 		persist_write_string(901, begin_prefix);
+		events_updated = true;
 	}
 
 	tuple = dict_find(iterator, 902);
@@ -74,7 +92,11 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		    sizeof end_prefix);
 		end_prefix[sizeof end_prefix - 1] = 0;
 		persist_write_string(902, end_prefix);
+		events_updated = true;
 	}
+
+	if (events_updated)
+		preprocess_long_events();
 
 	update_main_menu();
 }
@@ -86,7 +108,7 @@ init(void) {
 	persist_read_string(902, end_prefix, sizeof end_prefix);
 	end_prefix[sizeof end_prefix - 1] = 0;
 	strlist_load(&event_names, 1000);
-	update_long_event_id();
+	preprocess_long_events();
 	event_log_init();
 
 	app_message_register_inbox_received(inbox_received_handler);
