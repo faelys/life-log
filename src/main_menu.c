@@ -31,7 +31,6 @@ static char *subtitles;
 static const char *no_event_message = "No event configured.";
 static const char *show_log_message = "Show Event Log";
 static time_t event_last_seen[64];
-static struct string_list long_event_titles;
 
 static void
 set_subtitle(uint16_t id, uint16_t index) {
@@ -105,20 +104,11 @@ do_show_log(int index, void *context) {
 static bool
 rebuild_menu(SimpleMenuSection *section) {
 	SimpleMenuItem *items;
-	uint16_t size = 0, j;
-
-	strlist_reset(&long_event_titles);
+	uint16_t size = 0;
 
 	for (uint16_t i = 0; i < event_names.count; i++) {
 		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
 		if (name[0] == '+') {
-			char buffer[128];
-			snprintf(buffer, sizeof buffer, "%s%s",
-			    begin_prefix, name + 1);
-			strlist_append(&long_event_titles, buffer);
-			snprintf(buffer, sizeof buffer, "%s%s",
-			    end_prefix, name + 1);
-			strlist_append(&long_event_titles, buffer);
 			size += 2;
 		} else if (name[0] != '-') {
 			size += 1;
@@ -156,9 +146,7 @@ rebuild_menu(SimpleMenuSection *section) {
 		return true;
 	}
 
-	j = EXTRA_ITEMS;
-
-	for (uint16_t i = 0, k = 0; i < event_names.count; i++) {
+	for (uint16_t i = 0, j = EXTRA_ITEMS; i < event_names.count; i++) {
 		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
 		if (name[0] == '-') {
 			continue;
@@ -167,26 +155,33 @@ rebuild_menu(SimpleMenuSection *section) {
 		set_subtitle(i, j);
 
 		if (name[0] == '+') {
+			uint8_t long_id = long_event_id[i] - 1;
 			uint8_t other_j = EXTRA_ITEMS + size
-			    - long_event_titles.count / 2 + k;
-			items[j] = (SimpleMenuItem){
+			    - long_event_count + long_id;
+
+			if (long_event_id[i] == 0) {
+				APP_LOG(APP_LOG_LEVEL_ERROR,
+				    "long_event_id[%" PRIu16 "] is 0 "
+				    "even though name starts with '+'",
+				    i);
+				continue;
+			}
+
+			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_event,
-			    .title = STRLIST_UNSAFE_ITEM(long_event_titles,
-			      2 * k),
+			    .title = STRLIST_UNSAFE_ITEM(event_begins,
+			      long_id),
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
 			items[other_j] = (SimpleMenuItem){
 			    .callback = &do_record_event,
-			    .title = STRLIST_UNSAFE_ITEM(long_event_titles,
-			      2 * k + 1),
+			    .title = STRLIST_UNSAFE_ITEM(event_ends, long_id),
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
-			j += 1;
-			k += 1;
 		} else {
 			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_event,
-			    .title = STRLIST_UNSAFE_ITEM(event_names, i),
+			    .title = name,
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
 		}
