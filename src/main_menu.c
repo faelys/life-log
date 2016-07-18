@@ -17,6 +17,7 @@
 #include <inttypes.h>
 #include <pebble.h>
 
+#include "bitarray.h"
 #include "global.h"
 #include "strlist.h"
 
@@ -31,6 +32,9 @@ static char *subtitles;
 static const char *no_event_message = "No event configured.";
 static const char *show_log_message = "Show Event Log";
 static time_t event_last_seen[64];
+static BITARRAY_DECLARE(long_event_running, 128);
+
+static bool rebuild_menu(SimpleMenuSection *section);
 
 static void
 set_subtitle(uint16_t id, uint16_t index) {
@@ -78,12 +82,22 @@ do_record_event(int index, void *context) {
 	for (uint16_t id = 0, i = EXTRA_ITEMS;
 	    id < event_names.count;
 	    id += 1) {
-		if (STRLIST_UNSAFE_ITEM(event_names, id)[0] == '-') {
+		const char *name = STRLIST_UNSAFE_ITEM(event_names, id);
+		if (name[0] == '-') {
 			continue;
 		}
 		if (i == index) {
-			record_event(id + 1);
-			update_last_seen(id, index);
+			if (name[0] == '+') {
+				record_event(id + 1);
+				update_last_seen(id, index);
+				BITARRAY_TOGGLE(long_event_running, id);
+				persist_write_data(210, long_event_running,
+				    sizeof long_event_running);
+				rebuild_menu(&menu_section);
+			} else {
+				record_event(id + 1);
+				update_last_seen(id, index);
+			}
 			return;
 		}
 		i += 1;
@@ -158,6 +172,7 @@ rebuild_menu(SimpleMenuSection *section) {
 			uint8_t long_id = long_event_id[i] - 1;
 			uint8_t other_j = EXTRA_ITEMS + size
 			    - long_event_count + long_id;
+			bool running = BITARRAY_TEST(long_event_running, i);
 
 			if (long_event_id[i] == 0) {
 				APP_LOG(APP_LOG_LEVEL_ERROR,
@@ -169,13 +184,14 @@ rebuild_menu(SimpleMenuSection *section) {
 
 			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_event,
-			    .title = STRLIST_UNSAFE_ITEM(event_begins,
-			      long_id),
+			    .title = STRLIST_UNSAFE_ITEM(running
+			      ? event_ends : event_begins, long_id),
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
 			items[other_j] = (SimpleMenuItem){
 			    .callback = &do_record_event,
-			    .title = STRLIST_UNSAFE_ITEM(event_ends, long_id),
+			    .title = STRLIST_UNSAFE_ITEM(running
+			      ? event_begins : event_ends, long_id),
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
 		} else {
@@ -195,6 +211,7 @@ window_load(Window *window) {
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_bounds(window_layer);
 	persist_read_data(200, event_last_seen, sizeof event_last_seen);
+	persist_read_data(210, long_event_running, sizeof long_event_running);
 
 	if (!rebuild_menu(&menu_section)) return; /* TODO: display error */
 
