@@ -99,6 +99,14 @@ do_record_event(int index, void *context) {
 				update_last_seen(id, index);
 			}
 			return;
+		} else if (long_event_id[id] > 0
+		    && (unsigned)index == menu_section.num_items
+		      - long_event_count + long_event_id[id] - 1) {
+			BITARRAY_TOGGLE(long_event_running, id);
+			persist_write_data(210, long_event_running,
+			    sizeof long_event_running);
+			rebuild_menu(&menu_section);
+			return;
 		}
 		i += 1;
 	}
