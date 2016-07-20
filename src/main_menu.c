@@ -68,6 +68,16 @@ update_last_seen(uint16_t id, uint16_t index) {
 }
 
 static void
+toggle_long_event_running(uint16_t id) {
+	BITARRAY_TOGGLE(long_event_running, id);
+	persist_write_data(210, long_event_running, sizeof long_event_running);
+	rebuild_menu(&menu_section);
+	if (menu_layer) {
+		layer_mark_dirty(simple_menu_layer_get_layer(menu_layer));
+	}
+}
+
+static void
 do_record_event(int index, void *context) {
 	(void)context;
 
@@ -89,11 +99,8 @@ do_record_event(int index, void *context) {
 		if (i == index) {
 			if (name[0] == '+') {
 				record_event(id + 1);
+				toggle_long_event_running(id);
 				update_last_seen(id, index);
-				BITARRAY_TOGGLE(long_event_running, id);
-				persist_write_data(210, long_event_running,
-				    sizeof long_event_running);
-				rebuild_menu(&menu_section);
 			} else {
 				record_event(id + 1);
 				update_last_seen(id, index);
@@ -102,10 +109,7 @@ do_record_event(int index, void *context) {
 		} else if (long_event_id[id] > 0
 		    && (unsigned)index == menu_section.num_items
 		      - long_event_count + long_event_id[id] - 1) {
-			BITARRAY_TOGGLE(long_event_running, id);
-			persist_write_data(210, long_event_running,
-			    sizeof long_event_running);
-			rebuild_menu(&menu_section);
+			toggle_long_event_running(id);
 			return;
 		}
 		i += 1;
