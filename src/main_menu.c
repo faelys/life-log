@@ -194,7 +194,7 @@ rebuild_menu(SimpleMenuSection *section) {
 				continue;
 			}
 
-			items[j++] = (SimpleMenuItem){
+			items[j] = (SimpleMenuItem){
 			    .callback = &do_record_event,
 			    .title = STRLIST_UNSAFE_ITEM(running
 			      ? event_ends : event_begins, long_id),
@@ -206,6 +206,7 @@ rebuild_menu(SimpleMenuSection *section) {
 			      ? event_begins : event_ends, long_id),
 			    .subtitle = subtitles + j * SUBTITLE_LENGTH,
 			};
+			j++;
 		} else {
 			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_event,
