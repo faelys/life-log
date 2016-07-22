@@ -98,7 +98,11 @@ do_record_event(int index, void *context) {
 		}
 		if (i == index) {
 			if (name[0] == '+') {
-				record_event(id + 1);
+				if (BITARRAY_TEST(long_event_running, i)) {
+					record_event(id + 128);
+				} else {
+					record_event(id + 1);
+				}
 				toggle_long_event_running(id);
 				update_last_seen(id, index);
 			} else {
