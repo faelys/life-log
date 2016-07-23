@@ -114,9 +114,20 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 		uint16_t i = section->num_items;
 		section->num_items += 1;
 		if (page[j].id && page[j].id <= event_names.count) {
+			uint8_t long_id = long_event_id[page[j].id - 1];
 			items[i] = (SimpleMenuItem) {
-			    .title = STRLIST_UNSAFE_ITEM(event_names,
-                                                         page[j].id - 1),
+			    .title = long_id > 0
+			    ? STRLIST_UNSAFE_ITEM(event_begins, long_id - 1)
+			    : STRLIST_UNSAFE_ITEM(event_names, page[j].id - 1),
+			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, j)
+			};
+		} else if (page[j].id >= 128
+		    && page[j].id - 128 < event_names.count) {
+			uint8_t long_id = long_event_id[page[j].id - 128];
+			items[i] = (SimpleMenuItem) {
+			    .title = long_id > 0
+			    ? STRLIST_UNSAFE_ITEM(event_ends, long_id - 1)
+			    : STRLIST_UNSAFE_ITEM(event_names, page[j].id - 1),
 			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, j)
 			};
 		} else {
