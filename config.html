@@ -29,10 +29,10 @@
         return pair[1];
       }
     }
-    return defaultValue || false;
+    return defaultValue;
   }
 
-  function getRawQueryParam(variable, defaultValue) {
+  function getQueryParam(variable, defaultValue) {
     return decodeURIComponent(getRawQueryParam(variable, defaultValue));
   }
 
