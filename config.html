@@ -48,6 +48,18 @@
     return result;
   }
 
+  function readAndEncodeList(elementId) {
+    var cn = document.getElementById(elementId).childNodes;
+    var result = [];
+    var i;
+    for (i = 0; i < cn.length; i++) {
+      if (cn[i].className === "item") {
+        result.push(encodeURIComponent(cn[i].childNodes[0].nodeValue));
+      }
+    }
+    return result;
+  }
+
   function onSubmit() {
     // Set the return URL depending on the runtime environment
     var return_to = getQueryParam("return_to", "pebblejs://close#");
@@ -55,6 +67,13 @@
       "event-list": readEventList("eventList").join(","),
       "begin-prefix": document.getElementById("beginPrefix").value,
       "end-prefix": document.getElementById("endPrefix").value,
+      "url": document.getElementById("url").value,
+      "data-field": document.getElementById("dataField").value,
+      "extra-fields" : readAndEncodeList("extraFields").join(","),
+    }
+
+    if (document.getElementById("resendEverything").checked) {
+      options.resend = true;
     }
 
     console.log("returning " + JSON.stringify(options));
@@ -131,6 +150,44 @@
   </div>
 
   <div class="item-container">
+    <div class="item-container-header">Endpoint URL</div>
+    <div class="item-container-content">
+      <label class="item">
+        <input type="text" class="item-input" name="url" id="url" placeholder="http://example.com/post/path">
+      </label>
+      <label class="item">
+        Restart sending everthing
+        <input type="checkbox" class="item-toggle" name="resendEverything" id="resendEverything">
+      </label>
+    </div>
+  </div>
+
+  <div class="item-container">
+    <div class="item-container-header">Data Field Name</div>
+    <div class="item-container-content">
+      <label class="item">
+        <input type="text" class="item-input" name="dataField" id="dataField">
+      </label>
+    </div>
+  </div>
+
+  <div class="item-container">
+    <div class="item-container-header">Extra Form Fields</div>
+    <div class="item-container-content">
+      <div class="item-dynamic-list" id="extraFields">
+      </div>
+    </div>
+    <div class="item-container-footer">
+      Extra fields are sent with constant values along with the sent data.
+      It can be used to provide e.g. an authentication token, or an
+      identification field. Items in the list above must be of the form
+      "name=value" (without quotes), and then part before the equal sign is
+      field name and the part after is its value. Entries without equal sign
+      are considered as a whole field name with empty value.
+    </div>
+  </div>
+
+  <div class="item-container">
     <div class="button-container">
       <input id="submitButton" type="button" class="item-button" value="SUBMIT" onClick="onSubmit()">
     </div>
@@ -159,6 +216,17 @@
 
     document.getElementById("beginPrefix").value = getQueryParam("bpre", "Start of ");
     document.getElementById("endPrefix").value = getQueryParam("epre", "End of ");
+    document.getElementById("url").value = getQueryParam("url", "");
+    document.getElementById("dataField").value = getQueryParam("data_field", "");
+
+    var initExtraFields = ("," + getRawQueryParam("extra", "")).split(",");
+    initExtraFields.shift();
+    for (var i = 0; i < initExtraFields.length; i++) {
+      var newNode = document.createElement("label");
+      newNode.className = "item";
+      newNode.appendChild(document.createTextNode(decodeURIComponent(initExtraFields[i])));
+      document.getElementById("extraFields").appendChild(newNode);
+    }
   </script>
 </body>
 </html>
