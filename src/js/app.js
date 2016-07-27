@@ -44,7 +44,7 @@ Pebble.addEventListener("webviewclosed", function(e) {
    var configData = JSON.parse(e.response);
 
    for (var key in settings) {
-      localStorage.setItem(key, configData[key]);
+      localStorage.setItem(key, decodeURIComponent(configData[key]));
    }
 
    const eventArray = configData["event-list"] !== "" ? configData["event-list"].split(",") : [];
