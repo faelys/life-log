@@ -20,6 +20,10 @@ const settings = {  /* "name in local storage": "form input parameter" */
    "end-prefix":    "epre",
 };
 
+var cfg_endpoint = null;
+var cfg_data_field = null;
+var cfg_extra_fields = [];
+
 function encodeStored(names) {
    var result = "?v=dev";
    for (var key in names) {
@@ -28,11 +32,28 @@ function encodeStored(names) {
          result = result + "&" + names[key] + "=" + encodeURIComponent(value);
       }
    }
+
+   if (cfg_endpoint) {
+      result += "&url=" + encodeURIComponent(cfg_endpoint);
+   }
+   if (cfg_data_field) {
+      result += "&data_field=" + encodeURIComponent(cfg_data_field);
+   }
+   if (cfg_extra_fields.length > 0) {
+      result += "&extra=" + cfg_extra_fields.join(",");
+   }
+
    console.log("Encoded from storage: " + result);
    return result;
 }
 
 Pebble.addEventListener("ready", function() {
+   var str_extra_fields = localStorage.getItem("extra-fields");
+   cfg_extra_fields = str_extra_fields ? str_extra_fields.split(",") : [];
+
+   cfg_endpoint = localStorage.getItem("url");
+   cfg_data_field = localStorage.getItem("data-field");
+
    console.log("Life-Log PebbleKit JS ready!");
 });
 
@@ -45,6 +66,20 @@ Pebble.addEventListener("webviewclosed", function(e) {
 
    for (var key in settings) {
       localStorage.setItem(key, decodeURIComponent(configData[key]));
+   }
+
+   if (configData["extra-fields"] !== null) {
+      cfg_extra_fields = configData["extra-fields"]
+       ? configData["extra-fields"].split(",") : [];
+      localStorage.setItem("extra-fields", cfg_extra_fields.join(","));
+   }
+
+   if (configData["data-field"]) {
+      cfg_data_field = decodeURIComponent(configData["data-field"]);
+   }
+
+   if (configData.url) {
+      cfg_endpoint = decodeURIComponent(configData.url);
    }
 
    const eventArray = configData["event-list"] !== "" ? configData["event-list"].split(",") : [];
