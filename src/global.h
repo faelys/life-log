@@ -20,6 +20,13 @@
 
 #define PREFIX_LENGTH 32
 
+#define KEY_EVENT_LOG		 100
+#define KEY_EVENT_LAST_SEEN	 200
+#define KEY_LONG_EVENT_RUNNING	 210
+#define KEY_BEGIN_PREFIX	 901
+#define KEY_END_PREFIX		 902
+#define KEY_EVENT_NAMES		1000
+
 extern struct string_list event_names;
 extern struct string_list event_begins;
 extern struct string_list event_ends;

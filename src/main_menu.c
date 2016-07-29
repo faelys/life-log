@@ -60,7 +60,8 @@ set_subtitle(uint16_t id, uint16_t index) {
 static void
 update_last_seen(uint16_t id, uint16_t index) {
 	event_last_seen[id] = time(0);
-	persist_write_data(200, event_last_seen, sizeof event_last_seen);
+	persist_write_data(KEY_EVENT_LAST_SEEN,
+	    event_last_seen, sizeof event_last_seen);
 	set_subtitle(id, index);
 	if (menu_layer) {
 		layer_mark_dirty(simple_menu_layer_get_layer(menu_layer));
@@ -70,7 +71,8 @@ update_last_seen(uint16_t id, uint16_t index) {
 static void
 toggle_long_event_running(uint16_t id) {
 	BITARRAY_TOGGLE(long_event_running, id);
-	persist_write_data(210, long_event_running, sizeof long_event_running);
+	persist_write_data(KEY_LONG_EVENT_RUNNING,
+	    long_event_running, sizeof long_event_running);
 	rebuild_menu(&menu_section);
 	if (menu_layer) {
 		layer_mark_dirty(simple_menu_layer_get_layer(menu_layer));
@@ -227,8 +229,10 @@ static void
 window_load(Window *window) {
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_bounds(window_layer);
-	persist_read_data(200, event_last_seen, sizeof event_last_seen);
-	persist_read_data(210, long_event_running, sizeof long_event_running);
+	persist_read_data(KEY_EVENT_LAST_SEEN,
+	    event_last_seen, sizeof event_last_seen);
+	persist_read_data(KEY_LONG_EVENT_RUNNING,
+	    long_event_running, sizeof long_event_running);
 
 	if (!rebuild_menu(&menu_section)) return; /* TODO: display error */
 

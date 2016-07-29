@@ -65,11 +65,11 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		}
 	}
 
-	tuple = dict_find(iterator, 1000);
+	tuple = dict_find(iterator, KEY_EVENT_NAMES);
 	if (tuple && (tuple->type == TUPLE_UINT || tuple->type == TUPLE_INT)) {
 		strlist_set_from_dict(&event_names, iterator,
-		    1001, tuple->value->uint8);
-		strlist_store(&event_names, 1000);
+		    KEY_EVENT_NAMES + 1, tuple->value->uint8);
+		strlist_store(&event_names, KEY_EVENT_NAMES);
 		events_updated = true;
 	} else if (tuple) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
@@ -77,21 +77,21 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		    (int)tuple->type);
 	}
 
-	tuple = dict_find(iterator, 901);
+	tuple = dict_find(iterator, KEY_BEGIN_PREFIX);
 	if (tuple && tuple->type == TUPLE_CSTRING) {
 		strncpy(begin_prefix, tuple->value->cstring,
 		    sizeof begin_prefix);
 		begin_prefix[sizeof begin_prefix - 1] = 0;
-		persist_write_string(901, begin_prefix);
+		persist_write_string(KEY_BEGIN_PREFIX, begin_prefix);
 		events_updated = true;
 	}
 
-	tuple = dict_find(iterator, 902);
+	tuple = dict_find(iterator, KEY_END_PREFIX);
 	if (tuple && tuple->type == TUPLE_CSTRING) {
 		strncpy(end_prefix, tuple->value->cstring,
 		    sizeof end_prefix);
 		end_prefix[sizeof end_prefix - 1] = 0;
-		persist_write_string(902, end_prefix);
+		persist_write_string(KEY_END_PREFIX, end_prefix);
 		events_updated = true;
 	}
 
@@ -103,11 +103,12 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 
 static void
 init(void) {
-	persist_read_string(901, begin_prefix, sizeof begin_prefix);
+	persist_read_string(KEY_BEGIN_PREFIX,
+	    begin_prefix, sizeof begin_prefix);
 	begin_prefix[sizeof begin_prefix - 1] = 0;
-	persist_read_string(902, end_prefix, sizeof end_prefix);
+	persist_read_string(KEY_END_PREFIX, end_prefix, sizeof end_prefix);
 	end_prefix[sizeof end_prefix - 1] = 0;
-	strlist_load(&event_names, 1000);
+	strlist_load(&event_names, KEY_EVENT_NAMES);
 	preprocess_long_events();
 	event_log_init();
 

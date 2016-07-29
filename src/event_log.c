@@ -30,7 +30,7 @@ uint16_t next_index = 0;
 
 void
 event_log_init(void) {
-	int ret = persist_read_data(100, page, sizeof page);
+	int ret = persist_read_data(KEY_EVENT_LOG, page, sizeof page);
 
 	if (ret < 0) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
@@ -50,7 +50,7 @@ record_event(uint8_t id) {
 	page[next_index].id = id;
 	next_index = (next_index + 1) % PAGE_LENGTH;
 
-	int ret = persist_write_data(100, page, sizeof page);
+	int ret = persist_write_data(KEY_EVENT_LOG, page, sizeof page);
 	if (ret < 0) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
 		    "Error %d while writing event log",
