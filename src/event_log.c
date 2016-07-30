@@ -45,10 +45,26 @@ event_log_init(void) {
 
 void
 record_event(uint8_t id) {
+	const time_t ev_time = time(0);
+	const char *title = 0;
+
 	if (!id) return;
-	page[next_index].time = time(0);
+	page[next_index].time = ev_time;
 	page[next_index].id = id;
 	next_index = (next_index + 1) % PAGE_LENGTH;
+
+	if (id <= event_names.count) {
+		uint8_t long_id = long_event_id[id - 1];
+		title = long_id > 0
+		    ? STRLIST_UNSAFE_ITEM(event_begins, long_id - 1)
+		    : STRLIST_UNSAFE_ITEM(event_names, id - 1);
+	} else if (id >= 128 && id - 128 < event_names.count) {
+		uint8_t long_id = long_event_id[id - 128];
+		title = long_id > 0
+		    ? STRLIST_UNSAFE_ITEM(event_ends, long_id - 1)
+		    : STRLIST_UNSAFE_ITEM(event_names, id - 128);
+	}
+	if (title) send_recorded_event(ev_time, title);
 
 	int ret = persist_write_data(KEY_EVENT_LOG, page, sizeof page);
 	if (ret < 0) {

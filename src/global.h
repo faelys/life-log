@@ -23,6 +23,8 @@
 #define KEY_EVENT_LOG		 100
 #define KEY_EVENT_LAST_SEEN	 200
 #define KEY_LONG_EVENT_RUNNING	 210
+#define KEY_RECORD_TIME		 500
+#define KEY_RECORD_TITLE	 510
 #define KEY_BEGIN_PREFIX	 901
 #define KEY_END_PREFIX		 902
 #define KEY_EVENT_NAMES		1000
@@ -46,6 +48,9 @@ push_log_menu(void);
 
 void
 record_event(uint8_t id);
+
+bool
+send_recorded_event(time_t time, const char *title);
 
 void
 update_main_menu(void);

@@ -101,6 +101,49 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	update_main_menu();
 }
 
+bool
+send_recorded_event(time_t time, const char *title) {
+	AppMessageResult msg_result;
+	DictionaryIterator *iter;
+	DictionaryResult dict_result;
+	bool result = true;
+
+	msg_result = app_message_outbox_begin(&iter);
+	if (msg_result) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "send_event: app_message_outbox_begin returned %d",
+		    (int)msg_result);
+		return false;
+	}
+
+	dict_result = dict_write_int(iter, KEY_RECORD_TIME,
+	    &time, sizeof time, true);
+	if (dict_result != DICT_OK) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "send_event: [%d] unable to add data time %" PRIi32,
+		    (int)dict_result, time);
+		result = false;
+	}
+
+	dict_result = dict_write_cstring(iter, KEY_RECORD_TITLE, title);
+	if (dict_result != DICT_OK) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "send_event: [%d] unable to add data line \"%s\"",
+		    (int)dict_result, title);
+		result = false;
+	}
+
+	msg_result = app_message_outbox_send();
+	if (msg_result) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "send_event: app_mesage_outbox_send returned %d",
+		    (int)msg_result);
+		result = false;
+	}
+
+	return result;
+}
+
 static void
 init(void) {
 	persist_read_string(KEY_BEGIN_PREFIX,
@@ -113,7 +156,7 @@ init(void) {
 	event_log_init();
 
 	app_message_register_inbox_received(inbox_received_handler);
-	app_message_open(8192, 0);
+	app_message_open(8192, 512);
 
 	push_main_menu();
 }
