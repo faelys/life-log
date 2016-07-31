@@ -143,7 +143,7 @@ rebuild_menu(SimpleMenuSection *section, struct string_list *subtitles) {
 			items[i] = (SimpleMenuItem) {
 			    .title = long_id > 0
 			    ? STRLIST_UNSAFE_ITEM(event_ends, long_id - 1)
-			    : STRLIST_UNSAFE_ITEM(event_names, page[j].id - 1),
+			    : STRLIST_UNSAFE_ITEM(event_names, page[j].id-128),
 			    .subtitle = STRLIST_UNSAFE_ITEM(*subtitles, j)
 			};
 		} else {
