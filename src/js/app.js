@@ -24,6 +24,55 @@ var cfg_endpoint = null;
 var cfg_data_field = null;
 var cfg_extra_fields = [];
 
+var to_send = [];
+var senders = [new XMLHttpRequest(), new XMLHttpRequest()];
+var i_sender = 1;
+
+function sendPayload(payload) {
+   var data = new FormData();
+   data.append(cfg_data_field, payload);
+
+   if (cfg_extra_fields.length > 0) {
+      for (var i = 0; i < cfg_extra_fields.length; i += 1) {
+         var decoded = decodeURIComponent(cfg_extra_fields[i]).split("=");
+         var name = decoded.shift();
+         var value = decoded.join("=");
+         data.append(name, value);
+      }
+   }
+
+   i_sender = 1 - i_sender;
+   senders[i_sender].open("POST", cfg_endpoint, true);
+   senders[i_sender].send(data);
+}
+
+function sendHead() {
+   if (to_send.length < 1) return;
+   sendPayload(to_send[0].split(";")[1]);
+}
+
+function enqueue(key, line) {
+   to_send.push(key + ";" + line);
+   localStorage.setItem("toSend", to_send.join("|"));
+   if (to_send.length === 1) {
+      sendHead();
+   }
+}
+
+function uploadDone() {
+   var sent_key = to_send.shift().split(";")[0];
+   localStorage.setItem("toSend", to_send.join("|"));
+   localStorage.setItem("lastSent", sent_key);
+   sendHead();
+}
+
+function uploadError() { console.log(this.statusText); }
+
+senders[0].addEventListener("load", uploadDone);
+senders[0].addEventListener("error", uploadError);
+senders[1].addEventListener("load", uploadDone);
+senders[1].addEventListener("error", uploadError);
+
 function encodeStored(names) {
    var result = "?v=dev";
    for (var key in names) {
@@ -48,11 +97,18 @@ function encodeStored(names) {
 }
 
 Pebble.addEventListener("ready", function() {
+   var str_to_send = localStorage.getItem("toSend");
+   to_send = str_to_send ? str_to_send.split("|") : [];
+
    var str_extra_fields = localStorage.getItem("extra-fields");
    cfg_extra_fields = str_extra_fields ? str_extra_fields.split(",") : [];
 
    cfg_endpoint = localStorage.getItem("url");
    cfg_data_field = localStorage.getItem("data-field");
+
+   if (to_send.length >= 1) {
+      sendHead();
+   }
 
    console.log("Life-Log PebbleKit JS ready!");
 });
@@ -104,4 +160,10 @@ Pebble.addEventListener("webviewclosed", function(e) {
    }, function() {
       console.log("Send failed!");
    });
+});
+
+Pebble.addEventListener("appmessage", function(e) {
+   if (e.payload[500] && e.payload[510]) {
+      enqueue(e.payload[500], e.payload[510]);
+   }
 });
