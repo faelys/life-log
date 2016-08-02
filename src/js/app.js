@@ -132,10 +132,12 @@ Pebble.addEventListener("webviewclosed", function(e) {
 
    if (configData["data-field"]) {
       cfg_data_field = decodeURIComponent(configData["data-field"]);
+      localStorage.setItem("data-field", cfg_data_field);
    }
 
    if (configData.url) {
       cfg_endpoint = decodeURIComponent(configData.url);
+      localStorage.setItem("url", cfg_endpoint);
    }
 
    const eventArray = configData["event-list"] !== "" ? configData["event-list"].split(",") : [];
