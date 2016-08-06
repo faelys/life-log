@@ -64,7 +64,7 @@ record_event(uint8_t id) {
 		    ? STRLIST_UNSAFE_ITEM(event_ends, long_id - 1)
 		    : STRLIST_UNSAFE_ITEM(event_names, id - 128);
 	}
-	if (title) send_recorded_event(ev_time, title);
+	if (title) send_recorded_event(ev_time, id, title);
 
 	int ret = persist_write_data(KEY_EVENT_LOG, page, sizeof page);
 	if (ret < 0) {

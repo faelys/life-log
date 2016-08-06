@@ -101,12 +101,55 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 	update_main_menu();
 }
 
+static size_t
+recorded_event_image(char *buffer, size_t max_size,
+    time_t time, uint8_t id, const char *title) {
+	struct tm *tm;
+	size_t ret;
+	int i;
+
+	tm = gmtime(&time);
+	if (!tm) {
+		APP_LOG(APP_LOG_LEVEL_ERROR, "recorded_event_image: "
+		    "Unable to get UTC time for %" PRIi32, time);
+		return 0;
+	}
+
+	ret = strftime(buffer, max_size, "%FT%TZ", tm);
+	if (!ret) {
+		APP_LOG(APP_LOG_LEVEL_ERROR, "recorded_event_image: "
+		    "Unable to build RFC-3339 representation of %" PRIi32,
+		    time);
+		return 0;
+	}
+
+	if (ret >= max_size) {
+		APP_LOG(APP_LOG_LEVEL_ERROR, "recorded_event_image: "
+		    "Unexpected returned value %zu of strftime on buffer %zu",
+		    ret, max_size);
+		return 0;
+	}
+
+	i = snprintf(buffer + ret, max_size - ret,
+	    ",%" PRIu8 ",%s", id, title);
+
+	if (i <= 0) {
+		APP_LOG(APP_LOG_LEVEL_ERROR, "recorded_event_image: "
+		    "Unexpected return value %d from snprintf", i);
+		return 0;
+	}
+
+	return ret + i;
+}
+
 bool
-send_recorded_event(time_t time, const char *title) {
+send_recorded_event(time_t time, uint8_t id, const char *title) {
 	AppMessageResult msg_result;
 	DictionaryIterator *iter;
 	DictionaryResult dict_result;
+	char buffer[256];
 	bool result = true;
+	size_t sz;
 
 	msg_result = app_message_outbox_begin(&iter);
 	if (msg_result) {
@@ -125,7 +168,10 @@ send_recorded_event(time_t time, const char *title) {
 		result = false;
 	}
 
-	dict_result = dict_write_cstring(iter, KEY_RECORD_TITLE, title);
+	sz = recorded_event_image(buffer, sizeof buffer, time, id, title);
+
+	dict_result = dict_write_cstring(iter, KEY_RECORD_TITLE,
+	    sz ? buffer : title);
 	if (dict_result != DICT_OK) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
 		    "send_event: [%d] unable to add data line \"%s\"",

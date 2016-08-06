@@ -50,7 +50,7 @@ void
 record_event(uint8_t id);
 
 bool
-send_recorded_event(time_t time, const char *title);
+send_recorded_event(time_t time, uint8_t id, const char *title);
 
 void
 update_main_menu(void);
