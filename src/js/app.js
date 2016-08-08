@@ -39,8 +39,6 @@ function sendPayload(payload) {
    data.append(cfg_data_field, payload);
 
    if (cfg_sign_field) {
-      console.log("key is \"" + cfg_sign_key + "\"");
-      console.log("key format is \"" + cfg_sign_key_format + "\"");
       var sha = new jsSHA(cfg_sign_algo, "TEXT");
       sha.setHMACKey(cfg_sign_key, cfg_sign_key_format);
       sha.update(payload);
@@ -115,7 +113,6 @@ function encodeStored(names) {
        + "&s_keyf=" + encodeURIComponent(cfg_sign_key_format);
    }
 
-   console.log("Encoded from storage: " + result);
    return result;
 }
 
