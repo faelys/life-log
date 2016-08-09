@@ -67,6 +67,7 @@
       "event-list": readEventList("eventList").join(","),
       "begin-prefix": document.getElementById("beginPrefix").value,
       "end-prefix": document.getElementById("endPrefix").value,
+      "dir-sep": document.getElementById("directorySeparator").value,
       "url": document.getElementById("url").value,
       "data-field": document.getElementById("dataField").value,
       "extra-fields" : readAndEncodeList("extraFields").join(","),
@@ -159,6 +160,15 @@
       <label class="item">
         End of Event
         <input type="text" class="item-input" name="endPrefix" id="endPrefix">
+      </label>
+    </div>
+  </div>
+
+  <div class="item-container">
+    <div class="item-container-header">Directory Separator</div>
+    <div class="item-container-content">
+      <label class="item">
+        <input type="text" class="item-input" name="directorySeparator" id="directorySeparator">
       </label>
     </div>
   </div>
@@ -282,6 +292,7 @@
 
     document.getElementById("beginPrefix").value = getQueryParam("bpre", "Start of ");
     document.getElementById("endPrefix").value = getQueryParam("epre", "End of ");
+    document.getElementById("directorySeparator").value = getQueryParam("dsep", "");
     document.getElementById("url").value = getQueryParam("url", "");
     document.getElementById("dataField").value = getQueryParam("data_field", "");
     document.getElementById("signAlgorithm").value = getQueryParam("s_algo", "SHA-1");
