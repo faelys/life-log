@@ -18,6 +18,7 @@ const settings = {  /* "name in local storage": "form input parameter" */
    "event-list":    "ev",
    "begin-prefix":  "bpre",
    "end-prefix":    "epre",
+   "dir-sep":       "dsep",
 };
 
 var cfg_endpoint = null;
@@ -201,6 +202,9 @@ Pebble.addEventListener("webviewclosed", function(e) {
    }
    if (configData["end-prefix"] !== null) {
       dict[902] = configData["end-prefix"];
+   }
+   if (configData["dir-sep"] !== null) {
+      dict[910] = configData["dir-sep"];
    }
 
    for (var i = 0; i < eventArray.length; i++) {
