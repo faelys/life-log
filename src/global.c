@@ -23,3 +23,4 @@ uint8_t long_event_id[STRLIST_MAX_SIZE] = {0};
 uint8_t long_event_count = 0;
 char begin_prefix[PREFIX_LENGTH] = "Start of ";
 char end_prefix[PREFIX_LENGTH] = "End of ";
+char directory_separator[PREFIX_LENGTH] = "";

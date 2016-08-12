@@ -27,6 +27,7 @@
 #define KEY_RECORD_TITLE	 510
 #define KEY_BEGIN_PREFIX	 901
 #define KEY_END_PREFIX		 902
+#define KEY_DIRECTORY_SEPARATOR	 910
 #define KEY_EVENT_NAMES		1000
 
 extern struct string_list event_names;
@@ -36,6 +37,7 @@ extern uint8_t long_event_id[STRLIST_MAX_SIZE];
 extern uint8_t long_event_count;
 extern char begin_prefix[PREFIX_LENGTH];
 extern char end_prefix[PREFIX_LENGTH];
+extern char directory_separator[PREFIX_LENGTH];
 
 void
 event_log_init(void);

@@ -95,6 +95,16 @@ inbox_received_handler(DictionaryIterator *iterator, void *context) {
 		events_updated = true;
 	}
 
+	tuple = dict_find(iterator, KEY_DIRECTORY_SEPARATOR);
+	if (tuple && tuple->type == TUPLE_CSTRING) {
+		strncpy(directory_separator, tuple->value->cstring,
+		    sizeof directory_separator);
+		directory_separator[sizeof directory_separator - 1] = 0;
+		persist_write_string(KEY_DIRECTORY_SEPARATOR,
+		    directory_separator);
+		events_updated = true;
+	}
+
 	if (events_updated)
 		preprocess_long_events();
 
@@ -197,6 +207,9 @@ init(void) {
 	begin_prefix[sizeof begin_prefix - 1] = 0;
 	persist_read_string(KEY_END_PREFIX, end_prefix, sizeof end_prefix);
 	end_prefix[sizeof end_prefix - 1] = 0;
+	persist_read_string(KEY_DIRECTORY_SEPARATOR,
+	    directory_separator, sizeof directory_separator);
+	directory_separator[sizeof directory_separator - 1] = 0;
 	strlist_load(&event_names, KEY_EVENT_NAMES);
 	preprocess_long_events();
 	event_log_init();
