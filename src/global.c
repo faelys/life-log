@@ -19,6 +19,7 @@
 struct string_list event_names = {0};
 struct string_list event_begins = {0};
 struct string_list event_ends = {0};
+struct string_list event_prefixes = {0};
 uint8_t long_event_id[STRLIST_MAX_SIZE] = {0};
 uint8_t long_event_count = 0;
 char begin_prefix[PREFIX_LENGTH] = "Start of ";

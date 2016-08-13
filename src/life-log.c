@@ -4,17 +4,38 @@
 #include "dict_tools.h"
 #include "global.h"
 #include "strlist.h"
+#include "strset.h"
 
 static void
 preprocess_long_events(void) {
 	char buffer[128];
+	unsigned separator_length = strlen(directory_separator);
 
 	long_event_count = 0;
 	strlist_reset(&event_begins);
 	strlist_reset(&event_ends);
+	strlist_reset(&event_prefixes);
 
 	for (uint8_t i = 0; i < event_names.count; i += 1) {
 		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
+
+		if (separator_length > 0) {
+			const char *title = name;
+			const char *suffix;
+
+			if (name[0] == '-') continue;
+			if (name[0] == '+') title = name + 1;
+
+			suffix = title - 1;
+			while (1) {
+				suffix = strstr(suffix + 1,
+				    directory_separator);
+				if (!suffix) break;
+
+				strset_include(&event_prefixes,
+				    title, suffix + separator_length - title);
+			}
+		}
 
 		if (name[0] != '+') {
 			long_event_id[i] = 0;
