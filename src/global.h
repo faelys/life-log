@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <pebble.h>
+
 #include "strlist.h"
 
 #define PREFIX_LENGTH 32
@@ -40,8 +42,19 @@ extern char begin_prefix[PREFIX_LENGTH];
 extern char end_prefix[PREFIX_LENGTH];
 extern char directory_separator[PREFIX_LENGTH];
 
+struct event_menu_context;
+
 void
 event_log_init(void);
+
+struct event_menu_context *
+event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items);
+
+bool
+event_menu_rebuild(struct event_menu_context *context);
+
+void
+event_menu_destroy(struct event_menu_context *context);
 
 void
 push_main_menu(void);
