@@ -95,7 +95,7 @@ do_record_event(int index, void *void_context) {
 			subtitle = context->subtitles
 			    + (i - context->extra_items) * SUBTITLE_LENGTH;
 			if (name[0] == '+') {
-				if (BITARRAY_TEST(long_event_running, i)) {
+				if (BITARRAY_TEST(long_event_running, id)) {
 					record_event(id + 128);
 				} else {
 					record_event(id + 1);
