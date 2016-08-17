@@ -102,6 +102,7 @@ do_record_event(int index, void *void_context) {
 				}
 				toggle_long_event_running(id);
 				event_menu_rebuild(context);
+				set_subtitle(subtitle, id);
 			} else {
 				record_event(id + 1);
 				update_last_seen(id);
