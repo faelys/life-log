@@ -114,7 +114,6 @@ function encodeStored(names) {
        + "&s_keyf=" + encodeURIComponent(cfg_sign_key_format);
    }
 
-   console.log("Encoded from storage: " + result);
    return result;
 }
 
@@ -141,8 +140,7 @@ Pebble.addEventListener("ready", function() {
 });
 
 Pebble.addEventListener("showConfiguration", function() {
-//   Pebble.openURL("https://cdn.rawgit.com/faelys/life-log/v1.0/config.html" + encodeStored(settings));
-   Pebble.openURL("http://users.instinctive.eu/nat/log-config.html" + encodeStored(settings));
+   Pebble.openURL("https://cdn.rawgit.com/faelys/life-log/v1.0/config.html" + encodeStored(settings));
 });
 
 Pebble.addEventListener("webviewclosed", function(e) {
