@@ -115,7 +115,12 @@ do_record_event(int index, void *void_context) {
 		} else if (long_event_id[id] > 0
 		    && (unsigned)index == context->section.num_items
 		      - long_event_count + long_event_id[id] - 1) {
-			toggle_long_event_running(id);
+			if (BITARRAY_TEST(long_event_running, id)) {
+				record_event(id + 1);
+			} else {
+				record_event(id + 128);
+			}
+			update_last_seen(id);
 			event_menu_rebuild(context);
 			if (context->menu_layer)
 				layer_mark_dirty(simple_menu_layer_get_layer
