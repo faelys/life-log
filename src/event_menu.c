@@ -30,6 +30,7 @@ struct event_menu_context {
 	SimpleMenuSection section;
 	SimpleMenuItem *items;
 	char *subtitles;
+	uint8_t *ids;
 	unsigned extra_items;
 };
 
@@ -94,6 +95,14 @@ do_record_event(int index, void *void_context) {
 		if (i == index) {
 			subtitle = context->subtitles
 			    + (i - context->extra_items) * SUBTITLE_LENGTH;
+			if (id + 1 != context->ids[i - context->extra_items]) {
+				APP_LOG(APP_LOG_LEVEL_ERROR,
+				    "id %" PRIu16 " mismatch with ids[%"
+				    PRIu16 "] %" PRIu8,
+				    id,
+				    i - context->extra_items,
+				    context->ids[i - context->extra_items]);
+			}
 			if (name[0] == '+') {
 				if (BITARRAY_TEST(long_event_running, id)) {
 					record_event(id + 128);
@@ -115,6 +124,15 @@ do_record_event(int index, void *void_context) {
 		} else if (long_event_id[id] > 0
 		    && (unsigned)index == context->section.num_items
 		      - long_event_count + long_event_id[id] - 1) {
+			if (id + 128
+			    != context->ids[index - context->extra_items]) {
+				APP_LOG(APP_LOG_LEVEL_ERROR,
+				    "id %" PRIu16 " mismatch with ids[%"
+				    PRIu16 "] %" PRIu8,
+				    id,
+				    i - context->extra_items,
+				    context->ids[index - context->extra_items]);
+			}
 			if (BITARRAY_TEST(long_event_running, id)) {
 				record_event(id + 1);
 			} else {
@@ -139,6 +157,7 @@ bool
 event_menu_rebuild(struct event_menu_context *context) {
 	SimpleMenuItem *items;
 	char *subtitles;
+	uint8_t *ids;
 	uint16_t size = 0, num_items;
 
 	for (uint16_t i = 0; i < event_names.count; i++) {
@@ -156,6 +175,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 	    && context->items) {
 		items = context->items;
 		subtitles = context->subtitles;
+		ids = context->ids;
 	} else {
 		items = realloc(context->items, num_items * sizeof *items);
 		if (!items) {
@@ -178,8 +198,22 @@ event_menu_rebuild(struct event_menu_context *context) {
 			return false;
 		}
 
+		ids = realloc(context->ids,
+		    (num_items - context->extra_items) * sizeof *ids);
+
+		if (!ids) {
+			APP_LOG(APP_LOG_LEVEL_ERROR,
+			    "Untable to realloc ids from %"
+			    PRIu32 " to %" PRIu16,
+			    context->section.num_items, num_items);
+			free(items);
+			free(subtitles);
+			return false;
+		}
+
 		context->items = items;
 		context->subtitles = subtitles;
+		context->ids = ids;
 		context->section.num_items = num_items;
 	}
 	context->section.items = items;
@@ -218,6 +252,9 @@ event_menu_rebuild(struct event_menu_context *context) {
 				continue;
 			}
 
+			ids[j - context->extra_items] = i + 1;
+			ids[other_j - context->extra_items] = i + 128;
+
 			items[j] = (SimpleMenuItem){
 			    .callback = &do_record_event,
 			    .title = STRLIST_UNSAFE_ITEM(running
@@ -232,6 +269,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 			};
 			j++;
 		} else {
+			ids[j - context->extra_items] = i + 1;
 			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_event,
 			    .title = name,
@@ -284,5 +322,6 @@ event_menu_destroy(struct event_menu_context *context) {
 	context->section.items = 0;
 	context->section.num_items = 0;
 	free(context->subtitles);
+	free(context->ids);
 	free(context);
 }
