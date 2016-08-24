@@ -72,85 +72,73 @@ toggle_long_event_running(uint16_t id) {
 	    long_event_running, sizeof long_event_running);
 }
 
-static void
-do_record_event(int index, void *void_context) {
-	struct event_menu_context *context = void_context;
+static bool
+check_callback_context(int index, struct event_menu_context *context) {
+	if (!context) return false;
 
 	if (index < 0 || (unsigned)index < context->extra_items) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,
-		    "do_record_event called with unexpected index %d"
-		    " (EXTRA_ITEMS being %d)",
+		    "event_menu callback called with unexpected index %d"
+		    " (extra_items being %u)",
 		    index, context->extra_items);
-		return;
+		return false;
 	}
 
-	for (uint16_t id = 0, i = context->extra_items;
-	    id < event_names.count;
-	    id += 1) {
-		const char *name = STRLIST_UNSAFE_ITEM(event_names, id);
-		char *subtitle;
-		if (name[0] == '-') {
-			continue;
-		}
-		if (i == index) {
-			subtitle = context->subtitles
-			    + (i - context->extra_items) * SUBTITLE_LENGTH;
-			if (id + 1 != context->ids[i - context->extra_items]) {
-				APP_LOG(APP_LOG_LEVEL_ERROR,
-				    "id %" PRIu16 " mismatch with ids[%"
-				    PRIu16 "] %" PRIu8,
-				    id,
-				    i - context->extra_items,
-				    context->ids[i - context->extra_items]);
-			}
-			if (name[0] == '+') {
-				if (BITARRAY_TEST(long_event_running, id)) {
-					record_event(id + 128);
-				} else {
-					record_event(id + 1);
-				}
-				toggle_long_event_running(id);
-				update_last_seen(id);
-				event_menu_rebuild(context);
-			} else {
-				record_event(id + 1);
-				update_last_seen(id);
-				set_subtitle(subtitle, id);
-			}
-			if (context->menu_layer)
-				layer_mark_dirty(simple_menu_layer_get_layer
-				    (context->menu_layer));
-			return;
-		} else if (long_event_id[id] > 0
-		    && (unsigned)index == context->section.num_items
-		      - long_event_count + long_event_id[id] - 1) {
-			if (id + 128
-			    != context->ids[index - context->extra_items]) {
-				APP_LOG(APP_LOG_LEVEL_ERROR,
-				    "id %" PRIu16 " mismatch with ids[%"
-				    PRIu16 "] %" PRIu8,
-				    id,
-				    i - context->extra_items,
-				    context->ids[index - context->extra_items]);
-			}
-			if (BITARRAY_TEST(long_event_running, id)) {
-				record_event(id + 1);
-			} else {
-				record_event(id + 128);
-			}
-			update_last_seen(id);
-			event_menu_rebuild(context);
-			if (context->menu_layer)
-				layer_mark_dirty(simple_menu_layer_get_layer
-				    (context->menu_layer));
-			return;
-		}
-		i += 1;
+	if (context->ids[(unsigned)index - context->extra_items] == 0) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "event_menu callback called without recorded id"
+		    " (index %d, extra_items %u)",
+		    index, context->extra_items);
+		return false;
 	}
-	APP_LOG(APP_LOG_LEVEL_ERROR,
-	    "Unexpected fallthrough from loop in do_record_event,"
-	    " index = %d, event_names.count = %" PRIu8,
-	    index, event_names.count);
+
+	return true;
+}
+
+static void
+do_record_short_event(int index, void *void_context) {
+	struct event_menu_context *context = void_context;
+	unsigned corrected_index;
+	uint8_t id;
+	char *subtitle;
+
+	if (!check_callback_context(index, context)) return;
+
+	corrected_index = (unsigned)index - context->extra_items;
+	id = context->ids[corrected_index] - 1;
+	subtitle = context->subtitles + corrected_index * SUBTITLE_LENGTH;
+
+	record_event(id + 1);
+	update_last_seen(id);
+	set_subtitle(subtitle, id);
+
+	if (context->menu_layer)
+		layer_mark_dirty(simple_menu_layer_get_layer
+		    (context->menu_layer));
+}
+
+static void
+do_record_long_event(int index, void *void_context) {
+	struct event_menu_context *context = void_context;
+	unsigned corrected_index;
+	uint8_t id;
+	bool running, secondary;
+
+	if (!check_callback_context(index, context)) return;
+
+	corrected_index = (unsigned)index - context->extra_items;
+	secondary = (context->ids[corrected_index] >= 128);
+	id = context->ids[corrected_index] - (secondary ? 128 : 1);
+	running = BITARRAY_TEST(long_event_running, id);
+
+	record_event(id + (secondary == running ? 1 : 128));
+	if (!secondary) toggle_long_event_running(id);
+	update_last_seen(id);
+	event_menu_rebuild(context);
+
+	if (context->menu_layer)
+		layer_mark_dirty(simple_menu_layer_get_layer
+		    (context->menu_layer));
 }
 
 bool
@@ -256,13 +244,13 @@ event_menu_rebuild(struct event_menu_context *context) {
 			ids[other_j - context->extra_items] = i + 128;
 
 			items[j] = (SimpleMenuItem){
-			    .callback = &do_record_event,
+			    .callback = &do_record_long_event,
 			    .title = STRLIST_UNSAFE_ITEM(running
 			      ? event_ends : event_begins, long_id),
 			    .subtitle = subtitle,
 			};
 			items[other_j] = (SimpleMenuItem){
-			    .callback = &do_record_event,
+			    .callback = &do_record_long_event,
 			    .title = STRLIST_UNSAFE_ITEM(running
 			      ? event_begins : event_ends, long_id),
 			    .subtitle = subtitle,
@@ -271,7 +259,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 		} else {
 			ids[j - context->extra_items] = i + 1;
 			items[j++] = (SimpleMenuItem){
-			    .callback = &do_record_event,
+			    .callback = &do_record_short_event,
 			    .title = name,
 			    .subtitle = subtitle,
 			};
