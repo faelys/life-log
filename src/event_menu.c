@@ -20,6 +20,7 @@
 #include "bitarray.h"
 #include "global.h"
 #include "strlist.h"
+#include "strset.h"
 
 #define EXTRA_ITEMS 1
 #define SUBTITLE_FORMAT "%Y-%m-%d %H:%M:%S"
@@ -147,12 +148,36 @@ event_menu_rebuild(struct event_menu_context *context) {
 	char *subtitles;
 	uint8_t *ids;
 	uint16_t size = 0, num_items;
+	const char *cur_prefix;
+	unsigned cur_prefix_length;
+	unsigned separator_length = strlen(directory_separator);
 
+	cur_prefix = 0;
 	for (uint16_t i = 0; i < event_names.count; i++) {
 		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
+		const char *title = name;
+		const char *suffix;
+
+		if (name[0] == '-') continue;
+		if (name[0] == '+') title = name + 1;
+		if (cur_prefix
+		    && strncmp(name, cur_prefix, cur_prefix_length) == 0) {
+			continue;
+		}
+
+		size += 1;
+		cur_prefix = 0;
+
+		if (directory_separator[0]
+		    && (suffix = strstr(title, directory_separator)) != 0) {
+			uint8_t id;
+			cur_prefix_length = suffix + separator_length - title;
+			id = strset_search(&event_prefixes,
+			    title, cur_prefix_length);
+			cur_prefix = STRLIST_ITEM(event_prefixes, id);
+		}
+
 		if (name[0] == '+') {
-			size += 2;
-		} else if (name[0] != '-') {
 			size += 1;
 		}
 	}
@@ -213,13 +238,39 @@ event_menu_rebuild(struct event_menu_context *context) {
 		return true;
 	}
 
+	cur_prefix = 0;
 	for (uint16_t i = 0, j = context->extra_items;
 	    i < event_names.count;
 	    i++) {
 		const char *name = STRLIST_UNSAFE_ITEM(event_names, i);
+		const char *title = name;
 		char *subtitle;
+		char *suffix;
+
 		if (name[0] == '-') {
 			continue;
+		}
+		if (name[0] == '+') title = name + 1;
+		if (cur_prefix
+		    && strncmp(name, cur_prefix, cur_prefix_length) == 0) {
+			continue;
+		}
+
+		if (directory_separator[0]
+		    && (suffix = strstr(title, directory_separator)) != 0) {
+			uint8_t id;
+			cur_prefix_length = suffix + separator_length - title;
+			id = strset_search(&event_prefixes,
+			    title, cur_prefix_length);
+			cur_prefix = STRLIST_ITEM(event_prefixes, id);
+			if (cur_prefix) {
+				items[j++] = (SimpleMenuItem){
+				    .title = cur_prefix,
+				};
+				continue;
+			}
+		} else {
+			cur_prefix = 0;
 		}
 
 		subtitle = subtitles
