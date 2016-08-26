@@ -336,6 +336,7 @@ event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items) {
 	context->subtitles = 0;
 	context->extra_items = extra_items;
 	context->items = 0;
+	context->ids = 0;
 
 	if (!event_menu_rebuild(context)) {
 		free(context);
