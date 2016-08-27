@@ -193,7 +193,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 		items = realloc(context->items, num_items * sizeof *items);
 		if (!items) {
 			APP_LOG(APP_LOG_LEVEL_ERROR,
-			    "Untable to realloc event menu items from %"
+			    "Unable to realloc event menu items from %"
 			    PRIu32 " to %" PRIu16,
 			    context->section.num_items, num_items);
 			return false;
@@ -204,7 +204,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 
 		if (!subtitles) {
 			APP_LOG(APP_LOG_LEVEL_ERROR,
-			    "Untable to realloc subtitles from %"
+			    "Unable to realloc subtitles from %"
 			    PRIu32 " to %" PRIu16,
 			    context->section.num_items, num_items);
 			free(items);
@@ -216,7 +216,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 
 		if (!ids) {
 			APP_LOG(APP_LOG_LEVEL_ERROR,
-			    "Untable to realloc ids from %"
+			    "Unable to realloc ids from %"
 			    PRIu32 " to %" PRIu16,
 			    context->section.num_items, num_items);
 			free(items);
