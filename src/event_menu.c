@@ -161,7 +161,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 		if (name[0] == '-') continue;
 		if (name[0] == '+') title = name + 1;
 		if (cur_prefix
-		    && strncmp(name, cur_prefix, cur_prefix_length) == 0) {
+		    && strncmp(title, cur_prefix, cur_prefix_length) == 0) {
 			continue;
 		}
 
@@ -252,7 +252,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 		}
 		if (name[0] == '+') title = name + 1;
 		if (cur_prefix
-		    && strncmp(name, cur_prefix, cur_prefix_length) == 0) {
+		    && strncmp(title, cur_prefix, cur_prefix_length) == 0) {
 			continue;
 		}
 
