@@ -33,6 +33,7 @@ struct event_menu_context {
 	char *subtitles;
 	uint8_t *ids;
 	unsigned extra_items;
+	uint8_t filter_id;
 };
 
 static const char *no_event_message = "No event configured.";
@@ -151,6 +152,8 @@ event_menu_rebuild(struct event_menu_context *context) {
 	const char *cur_prefix;
 	unsigned cur_prefix_length;
 	unsigned separator_length = strlen(directory_separator);
+	const char *filter = STRLIST_ITEM(event_prefixes, context->filter_id);
+	const unsigned filter_length = filter ? strlen(filter) : 0;
 
 	cur_prefix = 0;
 	for (uint16_t i = 0; i < event_names.count; i++) {
@@ -160,6 +163,9 @@ event_menu_rebuild(struct event_menu_context *context) {
 
 		if (name[0] == '-') continue;
 		if (name[0] == '+') title = name + 1;
+		if (filter && strncmp(title, filter, filter_length) != 0) {
+			continue;
+		}
 		if (cur_prefix
 		    && strncmp(title, cur_prefix, cur_prefix_length) == 0) {
 			continue;
@@ -169,7 +175,8 @@ event_menu_rebuild(struct event_menu_context *context) {
 		cur_prefix = 0;
 
 		if (directory_separator[0]
-		    && (suffix = strstr(title, directory_separator)) != 0) {
+		    && (suffix = strstr(title + filter_length,
+		                        directory_separator)) != 0) {
 			uint8_t id;
 			cur_prefix_length = suffix + separator_length - title;
 			id = strset_search(&event_prefixes,
@@ -251,13 +258,17 @@ event_menu_rebuild(struct event_menu_context *context) {
 			continue;
 		}
 		if (name[0] == '+') title = name + 1;
+		if (filter && strncmp(title, filter, filter_length) != 0) {
+			continue;
+		}
 		if (cur_prefix
 		    && strncmp(title, cur_prefix, cur_prefix_length) == 0) {
 			continue;
 		}
 
 		if (directory_separator[0]
-		    && (suffix = strstr(title, directory_separator)) != 0) {
+		    && (suffix = strstr(title + filter_length,
+		                        directory_separator)) != 0) {
 			uint8_t id;
 			cur_prefix_length = suffix + separator_length - title;
 			id = strset_search(&event_prefixes,
@@ -311,7 +322,7 @@ event_menu_rebuild(struct event_menu_context *context) {
 			ids[j - context->extra_items] = i + 1;
 			items[j++] = (SimpleMenuItem){
 			    .callback = &do_record_short_event,
-			    .title = name,
+			    .title = title + filter_length,
 			    .subtitle = subtitle,
 			};
 		}
@@ -337,6 +348,7 @@ event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items) {
 	context->extra_items = extra_items;
 	context->items = 0;
 	context->ids = 0;
+	context->filter_id = INVALID_INDEX;
 
 	if (!event_menu_rebuild(context)) {
 		free(context);
