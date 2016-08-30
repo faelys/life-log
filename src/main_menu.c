@@ -17,6 +17,7 @@
 #include <pebble.h>
 
 #include "global.h"
+#include "strset.h"
 
 static Window *window;
 static struct event_menu_context *main_menu_context;
@@ -36,7 +37,7 @@ window_load(Window *window) {
 	    .title = show_log_message
 	};
 
-	main_menu_context = event_menu_build(window, 1, &item);
+	main_menu_context = event_menu_build(window, 1, &item, INVALID_INDEX);
 }
 
 static void
@@ -69,5 +70,5 @@ update_main_menu(void) {
 	if (!window || !main_menu_context) return;
 
 	event_menu_destroy(main_menu_context);
-	main_menu_context = event_menu_build(window, 1, &item);
+	main_menu_context = event_menu_build(window, 1, &item, INVALID_INDEX);
 }

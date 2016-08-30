@@ -48,7 +48,8 @@ void
 event_log_init(void);
 
 struct event_menu_context *
-event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items);
+event_menu_build(Window *parent, unsigned extra_items,
+    SimpleMenuItem *items, uint8_t filter_id);
 
 bool
 event_menu_rebuild(struct event_menu_context *context);

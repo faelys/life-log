@@ -333,7 +333,8 @@ event_menu_rebuild(struct event_menu_context *context) {
 
 
 struct event_menu_context *
-event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items) {
+event_menu_build(Window *parent, unsigned extra_items,
+    SimpleMenuItem *items, uint8_t filter_id) {
 	struct event_menu_context *context;
 
 	context = calloc(1, sizeof *context);
@@ -348,7 +349,7 @@ event_menu_build(Window *parent, unsigned extra_items, SimpleMenuItem *items) {
 	context->extra_items = extra_items;
 	context->items = 0;
 	context->ids = 0;
-	context->filter_id = INVALID_INDEX;
+	context->filter_id = filter_id;
 
 	if (!event_menu_rebuild(context)) {
 		free(context);
