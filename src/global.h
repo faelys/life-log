@@ -58,6 +58,9 @@ void
 event_menu_destroy(struct event_menu_context *context);
 
 void
+push_event_menu(uint8_t filter_id);
+
+void
 push_main_menu(void);
 
 void

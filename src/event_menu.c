@@ -378,3 +378,46 @@ event_menu_destroy(struct event_menu_context *context) {
 	free(context->ids);
 	free(context);
 }
+
+static void
+window_load(Window *window) {
+	struct event_menu_context *context;
+	uintptr_t id = (uintptr_t)(window_get_user_data(window));
+
+	if (id < 256 || id >= 512) {
+		APP_LOG(APP_LOG_LEVEL_ERROR,
+		    "Unexpected value for id %llu", (unsigned long long)id);
+		window_set_user_data(window, 0);
+		return;
+	} else {
+		APP_LOG(APP_LOG_LEVEL_INFO,
+		    "event menu window loaded with id %llu",
+		    (unsigned long long)id);
+	}
+
+	APP_LOG(APP_LOG_LEVEL_INFO, "event menu window_load() called");
+	context = event_menu_build(window, 0, 0, id);
+	window_set_user_data(window, context);
+}
+
+static void
+window_unload(Window *window) {
+	APP_LOG(APP_LOG_LEVEL_INFO, "event menu window_unload() called");
+	struct event_menu_context *context = window_get_user_data(window);
+	if (context) event_menu_destroy(context);
+}
+
+void
+push_event_menu(uint8_t filter_id) {
+	uintptr_t id = filter_id;
+	Window *window;
+
+	APP_LOG(APP_LOG_LEVEL_INFO, "push_event_menu(%" PRIu8 ")", filter_id);
+	window = window_create();
+	window_set_user_data(window, (void *)(id + 256));
+	window_set_window_handlers(window, (WindowHandlers) {
+	    .load = &window_load,
+	    .unload = &window_unload,
+	});
+	window_stack_push(window, true);
+}
