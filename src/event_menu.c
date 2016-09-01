@@ -98,6 +98,20 @@ check_callback_context(int index, struct event_menu_context *context) {
 }
 
 static void
+do_enter_submenu(int index, void *void_context) {
+	struct event_menu_context *context = void_context;
+	unsigned corrected_index;
+	uint8_t id;
+
+	if (!check_callback_context(index, context)) return;
+
+	corrected_index = (unsigned)index - context->extra_items;
+	id = context->ids[corrected_index] - 1;
+
+	push_event_menu(id);
+}
+
+static void
 do_record_short_event(int index, void *void_context) {
 	struct event_menu_context *context = void_context;
 	unsigned corrected_index;
@@ -275,7 +289,9 @@ event_menu_rebuild(struct event_menu_context *context) {
 			    title, cur_prefix_length);
 			cur_prefix = STRLIST_ITEM(event_prefixes, id);
 			if (cur_prefix) {
+				ids[j - context->extra_items] = id + 1;
 				items[j++] = (SimpleMenuItem){
+				    .callback = &do_enter_submenu,
 				    .title = cur_prefix,
 				};
 				continue;
